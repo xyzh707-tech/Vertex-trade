@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERTEX — Trade Smarter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background: #05080f;
+            color: #e0e6ed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px 15px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.35;
+            z-index: 0;
+            pointer-events: none;
+            animation: floatOrb 14s ease-in-out infinite;
+        }
+        .orb-1 { width: 380px; height: 380px; background: radial-gradient(circle, #00e0b8 0%, transparent 70%); top: -120px; left: -120px; animation-delay: 0s; }
+        .orb-2 { width: 420px; height: 420px; background: radial-gradient(circle, #3b82f6 0%, transparent 70%); bottom: -140px; right: -140px; animation-delay: -5s; }
+        .orb-3 { width: 280px; height: 280px; background: radial-gradient(circle, #8b5cf6 0%, transparent 70%); top: 40%; right: 10%; animation-delay: -9s; }
+        @keyframes floatOrb { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(30px, -40px) scale(1.15); } }
+        #custom-toast {
+            visibility: hidden;
+            min-width: 280px;
+            max-width: 90vw;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            text-align: center;
+            border-radius: 10px;
+            padding: 14px 20px;
+            position: fixed;
+            z-index: 1000;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            box-shadow: 0 8px 30px rgba(0, 224, 184, 0.35);
+            border: 1px solid rgba(0, 224, 184, 0.4);
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        #custom-toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
+        #custom-toast.error { border-color: rgba(255, 82, 82, 0.4); box-shadow: 0 8px 30px rgba(255, 82, 82, 0.35); }
+        .auth-card {
+            position: relative;
+            z-index: 1;
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            width: 100%;
+            max-width: 440px;
+            padding: 34px 26px 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 224, 184, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            animation: cardIn 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        @keyframes cardIn { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .brand { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; }
+        .brand-logo { width: 68px; height: 68px; display: block; filter: drop-shadow(0 0 18px rgba(0, 224, 184, 0.5)); margin-bottom: 10px; }
+        .brand-name {
+            font-size: 26px; font-weight: 900; letter-spacing: 4px;
+            background: linear-gradient(135deg, #ffffff 0%, #00e0b8 60%, #3b82f6 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .brand-tag { font-size: 10px; font-weight: 600; letter-spacing: 3px; color: #64748b; text-transform: uppercase; margin-top: 4px; }
+        .tab-switch { display: grid; grid-template-columns: 1fr 1fr; background: rgba(5, 8, 15, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 4px; margin-bottom: 22px; }
+        .tab-btn { background: transparent; border: none; color: #94a3b8; padding: 10px 0; font-size: 13px; font-weight: 700; border-radius: 9px; cursor: pointer; letter-spacing: 0.5px; transition: all 0.25s ease; }
+        .tab-btn.active { background: linear-gradient(135deg, rgba(0, 224, 184, 0.2), rgba(59, 130, 246, 0.15)); color: #00e0b8; box-shadow: 0 4px 14px rgba(0, 224, 184, 0.15); }
+        .section { display: none; animation: fadeIn 0.35s ease; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .form-group { margin-bottom: 14px; position: relative; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-group label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; }
+        .input-wrap { position: relative; display: flex; align-items: center; }
+        .input-wrap svg.input-icon { position: absolute; left: 14px; width: 16px; height: 16px; fill: none; stroke: #64748b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; transition: stroke 0.25s ease; }
+        .form-control { width: 100%; padding: 13px 14px 13px 42px; background: rgba(5, 8, 15, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; color: #fff; font-size: 14px; font-weight: 500; outline: none; transition: border-color 0.25s, box-shadow 0.25s, background 0.25s; }
+        .form-control::placeholder { color: #475569; font-weight: 400; }
+        .form-control:focus { border-color: #00e0b8; background: rgba(5, 8, 15, 0.95); box-shadow: 0 0 0 3px rgba(0, 224, 184, 0.12); }
+        .form-control:focus ~ svg.input-icon, .input-wrap:focus-within svg.input-icon { stroke: #00e0b8; }
+        .toggle-pwd { position: absolute; right: 12px; background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
+        .toggle-pwd svg { width: 17px; height: 17px; fill: none; stroke: #64748b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
+        .toggle-pwd:hover svg { stroke: #00e0b8; }
+        .info-box { display: flex; gap: 8px; align-items: flex-start; background: rgba(0, 224, 184, 0.06); border: 1px solid rgba(0, 224, 184, 0.18); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; font-size: 11.5px; line-height: 1.5; color: #94a3b8; }
+        .info-box svg { flex-shrink: 0; width: 15px; height: 15px; stroke: #00e0b8; fill: none; stroke-width: 2; margin-top: 1px; }
+        .info-box strong { color: #00e0b8; }
+        .btn-submit { width: 100%; padding: 14px; background: linear-gradient(135deg, #00e0b8 0%, #3b82f6 100%); border: none; border-radius: 10px; color: #041014; font-weight: 800; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 24px rgba(0, 224, 184, 0.28); transition: transform 0.12s, box-shadow 0.3s, filter 0.2s; margin-top: 8px; }
+        .btn-submit:hover { box-shadow: 0 10px 30px rgba(0, 224, 184, 0.42); filter: brightness(1.05); }
+        .btn-submit:active { transform: scale(0.98); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .form-footer { display: flex; justify-content: flex-end; margin-top: 12px; }
+        .form-footer a { color: #94a3b8; text-decoration: none; font-size: 12px; font-weight: 600; transition: color 0.2s; }
+        .form-footer a:hover { color: #00e0b8; }
+        .trust-strip { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 10.5px; color: #64748b; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+        .trust-strip span { display: flex; align-items: center; gap: 5px; }
+        .trust-strip svg { width: 12px; height: 12px; stroke: #00e0b8; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        @media (max-width: 420px) { .auth-card { padding: 28px 20px 24px; border-radius: 16px; } .brand-name { font-size: 22px; letter-spacing: 3px; } .form-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div id="custom-toast"></div>
+
+    <div class="auth-card">
+        <div class="brand">
+            <canvas class="brand-logo" id="brandLogo" width="140" height="140"></canvas>
+            <div class="brand-name">VERTEX</div>
+            <div class="brand-tag">Trade Smarter</div>
+        </div>
+
+        <div class="tab-switch">
+            <button class="tab-btn active" id="tab-signin">Sign In</button>
+            <button class="tab-btn" id="tab-signup">Sign Up</button>
+        </div>
+
+        <!-- SIGN IN -->
+        <div id="signin-section" class="section active">
+            <div class="form-group">
+                <label>Phone Number</label>
+                <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <input type="tel" id="login-phone" class="form-control" placeholder="Enter phone number">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" id="login-password" class="form-control" placeholder="Enter password">
+                    <button type="button" class="toggle-pwd" data-target="login-password"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </div>
+            </div>
+            <button class="btn-submit" id="btn-login">Sign In</button>
+            <div class="form-footer"><a href="customer.html">Forgot Password?</a></div>
+        </div>
+
+        <!-- SIGN UP -->
+        <div id="signup-section" class="section">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <div class="input-wrap">
+                        <svg class="input-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input type="text" id="reg-fname" class="form-control" placeholder="First name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <div class="input-wrap">
+                        <svg class="input-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input type="text" id="reg-lname" class="form-control" placeholder="Last name">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <input type="tel" id="reg-phone" class="form-control" placeholder="Enter phone number">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" id="reg-password" class="form-control" placeholder="Create password">
+                    <button type="button" class="toggle-pwd" data-target="reg-password"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Referral Code (Optional)</label>
+                <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    <input type="text" id="reg-referral" class="form-control" placeholder="Enter referral code">
+                </div>
+            </div>
+            <div class="info-box">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <div>Have a valid referral code? Get <strong>₹38 bonus</strong> credited instantly to your wallet on sign up.</div>
+            </div>
+            <button class="btn-submit" id="btn-register">Create Account</button>
+        </div>
+
+        <div class="trust-strip">
+            <span><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Secure</span>
+            <span><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Verified</span>
+            <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>24/7</span>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAr-uCBGJd9qL2k99DJEfpiftJy5RXDfvY",
+            authDomain: "recording-884bb.firebaseapp.com",
+            databaseURL: "https://recording-884bb-default-rtdb.firebaseio.com",
+            projectId: "recording-884bb",
+            storageBucket: "recording-884bb.firebasestorage.app",
+            messagingSenderId: "761583827852",
+            appId: "1:761583827852:web:64efb0c82bc66ed1c034a9",
+            measurementId: "G-7ML390B1MX"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        /* ---------- Toast ---------- */
+        function showToast(msg, type) {
+            const toast = document.getElementById("custom-toast");
+            toast.innerText = msg;
+            toast.className = "show" + (type === 'error' ? ' error' : '');
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.className = toast.className.replace("show", "").replace("error", "");
+            }, 3000);
+        }
+
+        /* ---------- Brand Logo (canvas sketch) ---------- */
+        function drawBrandLogo() {
+            const cvs = document.getElementById('brandLogo');
+            const ctx = cvs.getContext('2d');
+            const W = cvs.width, H = cvs.height;
+            const cx = W / 2, cy = H / 2;
+            ctx.clearRect(0, 0, W, H);
+
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const ang = (Math.PI / 3) * i - Math.PI / 6;
+                const x = cx + 58 * Math.cos(ang);
+                const y = cy + 58 * Math.sin(ang);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(0, 0, W, H);
+            grad.addColorStop(0, '#00e0b8');
+            grad.addColorStop(1, '#3b82f6');
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - 34);
+            ctx.lineTo(cx + 30, cy - 18);
+            ctx.lineTo(cx + 30, cy + 14);
+            ctx.quadraticCurveTo(cx, cy + 42, cx, cy + 42);
+            ctx.quadraticCurveTo(cx - 30, cy + 14, cx - 30, cy + 14);
+            ctx.lineTo(cx - 30, cy - 18);
+            ctx.closePath();
+            const shieldGrad = ctx.createLinearGradient(cx - 30, cy - 34, cx + 30, cy + 42);
+            shieldGrad.addColorStop(0, 'rgba(0, 224, 184, 0.15)');
+            shieldGrad.addColorStop(1, 'rgba(59, 130, 246, 0.08)');
+            ctx.fillStyle = shieldGrad;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(cx - 16, cy + 10);
+            ctx.lineTo(cx - 4, cy - 2);
+            ctx.lineTo(cx + 4, cy + 4);
+            ctx.lineTo(cx + 16, cy - 10);
+            ctx.strokeStyle = '#00e0b8';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(cx + 8, cy - 10);
+            ctx.lineTo(cx + 16, cy - 10);
+            ctx.lineTo(cx + 16, cy - 2);
+            ctx.stroke();
+        }
+        drawBrandLogo();
+
+        /* ---------- Tab Switching ---------- */
+        const tabSignin = document.getElementById('tab-signin');
+        const tabSignup = document.getElementById('tab-signup');
+        const secSignin = document.getElementById('signin-section');
+        const secSignup = document.getElementById('signup-section');
+
+        function setTab(which) {
+            if (which === 'signin') {
+                tabSignin.classList.add('active');
+                tabSignup.classList.remove('active');
+                secSignin.classList.add('active');
+                secSignup.classList.remove('active');
+            } else {
+                tabSignup.classList.add('active');
+                tabSignin.classList.remove('active');
+                secSignup.classList.add('active');
+                secSignin.classList.remove('active');
+            }
+        }
+        tabSignin.addEventListener('click', () => setTab('signin'));
+        tabSignup.addEventListener('click', () => setTab('signup'));
+
+        /* ---------- Password toggle ---------- */
+        document.querySelectorAll('.toggle-pwd').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = document.getElementById(btn.dataset.target);
+                if (!target) return;
+                target.type = target.type === 'password' ? 'text' : 'password';
+            });
+        });
+
+        /* ---------- Helpers ---------- */
+        // Permanent + collision-free UID — reserved in Firebase
+        async function generateUniqueUID() {
+            for (let attempt = 0; attempt < 15; attempt++) {
+                const candidate = 'UID' + Math.floor(100000 + Math.random() * 900000);
+                const check = await get(ref(database, 'uidIndex/' + candidate));
+                if (!check.exists()) {
+                    await set(ref(database, 'uidIndex/' + candidate), Date.now());
+                    return candidate;
+                }
+            }
+            const fallback = 'UID' + Date.now().toString().slice(-8);
+            await set(ref(database, 'uidIndex/' + fallback), Date.now());
+            return fallback;
+        }
+
+        function getFormattedDate() {
+            const today = new Date();
+            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const yyyy = today.getFullYear();
+            return `${dd}/${mm}/${yyyy}`;
+        }
+
+        /* ---------- Register ---------- */
+        document.getElementById('btn-register').addEventListener('click', async () => {
+            const fname = document.getElementById('reg-fname').value.trim();
+            const lname = document.getElementById('reg-lname').value.trim();
+            const phone = document.getElementById('reg-phone').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+            const referral = document.getElementById('reg-referral').value.trim();
+
+            if (!fname || !lname || !phone || !password) {
+                showToast("Please fill all required fields", 'error');
+                return;
+            }
+            if (phone.length < 6) {
+                showToast("Enter a valid phone number", 'error');
+                return;
+            }
+            if (password.length < 4) {
+                showToast("Password must be at least 4 characters", 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-register');
+            btn.disabled = true;
+            btn.innerText = "Creating account…";
+
+            try {
+                const dbRef = ref(database);
+                const snapshot = await get(child(dbRef, `users/${phone}`));
+                if (snapshot.exists()) {
+                    showToast("This phone number is already registered!", 'error');
+                    btn.disabled = false;
+                    btn.innerText = "Create Account";
+                    return;
+                }
+
+                // Permanent, unique UID
+                const uid = await generateUniqueUID();
+                let walletAmount = 0;
+                let hasReferralBonus = false;
+
+                // Referral: code "54986" gives ₹38 bonus
+                if (referral === "54986") {
+                    walletAmount = 38;
+                    hasReferralBonus = true;
+                }
+
+                const userData = {
+                    uid: uid,
+                    firstName: fname,
+                    lastName: lname,
+                    phone: phone,
+                    password: password,
+                    wallet: walletAmount,
+                    referralBonusClaimed: hasReferralBonus,
+                    registrationDate: getFormattedDate(),
+                    isNewUser: true
+                };
+
+                await set(ref(database, 'users/' + phone), userData);
+
+                localStorage.setItem('activeUser', JSON.stringify(userData));
+                showToast("Account created successfully!");
+                setTimeout(() => { window.location.href = "lobby.html"; }, 600);
+            } catch (err) {
+                console.error(err);
+                showToast("Registration failed. Try again.", 'error');
+                btn.disabled = false;
+                btn.innerText = "Create Account";
+            }
+        });
+
+        /* ---------- Login ---------- */
+        document.getElementById('btn-login').addEventListener('click', async () => {
+            const phone = document.getElementById('login-phone').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+
+            if (!phone || !password) {
+                showToast("Please enter phone number and password", 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-login');
+            btn.disabled = true;
+            btn.innerText = "Signing in…";
+
+            try {
+                const dbRef = ref(database);
+                const snapshot = await get(child(dbRef, `users/${phone}`));
+
+                if (!snapshot.exists()) {
+                    showToast("User not found! Please sign up first.", 'error');
+                    btn.disabled = false;
+                    btn.innerText = "Sign In";
+                    return;
+                }
+
+                const userData = snapshot.val();
+                if (userData.password !== password) {
+                    showToast("Incorrect password!", 'error');
+                    btn.disabled = false;
+                    btn.innerText = "Sign In";
+                    return;
+                }
+
+                userData.isNewUser = false;
+                localStorage.setItem('activeUser', JSON.stringify(userData));
+                showToast("Welcome back!");
+                setTimeout(() => { window.location.href = "lobby.html"; }, 500);
+            } catch (err) {
+                console.error(err);
+                showToast("Login failed. Try again.", 'error');
+                btn.disabled = false;
+                btn.innerText = "Sign In";
+            }
+        });
+    </script>
+</body>
+</html>

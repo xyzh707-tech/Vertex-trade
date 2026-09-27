@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Trading Platform</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; }
+body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; position:relative; }
+.header { height:55px; background-color:#17212d; display:flex; align-items:center; justify-content:space-between; padding:0 12px; border-bottom:1px solid #233142; }
+.header-left { display:flex; align-items:center; gap:10px; }
+.icon-btn { background:#202c3a; border:none; color:#fff; width:38px; height:38px; border-radius:6px; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.account-info { display:flex; flex-direction:column; }
+.account-info .uid-text { font-size:11px; color:#8a9ba8; }
+.account-info .balance-text { font-size:16px; font-weight:bold; color:#fff; }
+.header-right { display:flex; align-items:center; gap:8px; }
+.online-badge { background:#202c3a; border:1px solid #00e676; padding:5px 10px; border-radius:20px; font-size:11px; color:#8a9ba8; display:flex; align-items:center; gap:5px; }
+.online-dot { width:6px; height:6px; background:#00e676; border-radius:50%; box-shadow:0 0 5px #00e676; }
+.asset-bar-container { height:45px; background:#131b26; display:flex; align-items:center; border-bottom:1px solid #1c2836; padding:0 8px; overflow-x:auto; white-space:nowrap; scrollbar-width:none; }
+.asset-bar-container::-webkit-scrollbar { display:none; }
+.asset-chip { display:inline-flex; align-items:center; gap:6px; background:#17212d; border:1px solid #233142; padding:6px 12px; border-radius:20px; font-size:12px; margin-right:6px; cursor:pointer; color:#8a9ba8; transition:all 0.2s; }
+.asset-chip.active { background:#202c3a; border-color:#00e676; color:#fff; font-weight:bold; }
+.asset-chip:active { transform:scale(0.96); }
+.main-viewport { position:relative; height:calc(100vh - 100px); width:100%; overflow:hidden; display:flex; flex-direction:column; }
+.drawer-left, .drawer-right { position:absolute; top:0; width:85%; max-width:320px; height:100%; background:#131b26; z-index:100; transition:all 0.3s ease; padding:15px; overflow-y:auto; }
+.drawer-left { left:-100%; border-right:1px solid #233142; }
+.drawer-left.active { left:0; }
+.drawer-right { right:-100%; border-left:1px solid #233142; }
+.drawer-right.active { right:0; }
+.profile-card { background:#1d2b3a; padding:15px; border-radius:10px; margin-bottom:15px; }
+.profile-card .balance-box { font-size:20px; font-weight:bold; color:#fff; margin-bottom:8px; }
+.profile-card .uid-box { font-size:12px; color:#00e676; background:rgba(0,230,118,0.1); padding:4px 8px; border-radius:4px; display:inline-block; }
+.profile-card .user-name { font-size:14px; color:#8a9ba8; margin-top:6px; }
+.action-buttons { display:flex; gap:10px; margin-bottom:15px; }
+.btn-deposit { flex:1; background:#00e676; color:#000; font-weight:bold; border:none; padding:10px; border-radius:6px; cursor:pointer; text-align:center; text-decoration:none; font-size:13px; }
+.btn-withdraw { flex:1; background:#202c3a; color:#fff; font-weight:bold; border:1px solid #334155; padding:10px; border-radius:6px; cursor:pointer; text-align:center; text-decoration:none; font-size:13px; }
+.menu-list { display:flex; flex-direction:column; gap:8px; }
+.menu-item { background:#17212d; padding:12px 15px; border-radius:8px; color:#c2d1d9; font-size:14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; border:1px solid transparent; }
+.menu-item .menu-left-content { display:flex; align-items:center; gap:10px; }
+.menu-item svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.menu-item .cs-icon-canvas { width:18px; height:18px; display:block; }
+.menu-item:active { background:#202c3a; border-color:#00e676; }
+.backdrop { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:90; display:none; }
+.backdrop.active { display:block; }
+.chart-container { flex:1; position:relative; background:#0d141e; overflow:hidden; }
+#tradingChart { width:100%; height:100%; display:block; touch-action:none; cursor:grab; }
+#tradingChart.dragging { cursor:grabbing; }
+.zoom-indicator { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(23,33,45,0.9); color:#fff; padding:8px 16px; border-radius:8px; font-size:14px; font-weight:bold; border:1px solid #00e676; opacity:0; pointer-events:none; transition:opacity 0.2s; z-index:20; }
+.zoom-indicator.show { opacity:1; }
+.status-bar-overlay { position:absolute; top:10px; left:12px; right:12px; display:flex; justify-content:space-between; align-items:center; z-index:10; pointer-events:none; }
+.prd-box { background:rgba(23,33,45,0.85); border:1px solid #233142; padding:6px 12px; border-radius:6px; backdrop-filter:blur(4px); }
+.prd-label { font-size:10px; color:#8a9ba8; text-transform:uppercase; }
+.prd-value { font-size:14px; font-weight:bold; color:#fff; letter-spacing:0.5px; }
+.timer-box { background:rgba(23,33,45,0.85); border:1px solid #233142; padding:6px 14px; border-radius:6px; text-align:center; backdrop-filter:blur(4px); }
+.timer-label { font-size:10px; color:#8a9ba8; text-transform:uppercase; }
+.timer-value { font-size:16px; font-weight:bold; color:#ff5252; font-variant-numeric:tabular-nums; }
+.trade-control-panel { height:75px; background:#131b26; border-top:1px solid #1c2836; display:flex; align-items:center; justify-content:space-between; padding:0 12px; gap:10px; z-index:10; }
+.input-group { display:flex; flex-direction:column; gap:4px; flex:1; max-width:120px; }
+.input-label { font-size:10px; color:#8a9ba8; }
+.amount-input { background:#17212d; border:1px solid #233142; color:#fff; padding:8px; border-radius:6px; font-weight:bold; font-size:14px; outline:none; width:100%; text-align:center; }
+.btn-trade { flex:1; height:48px; border:none; border-radius:6px; font-weight:bold; font-size:15px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; transition:all 0.2s; }
+.btn-trade:active { opacity:0.8; }
+.btn-trade.up { background:#00e676; color:#000; }
+.btn-trade.down { background:#ff5252; color:#fff; }
+.btn-trade:disabled { background:#334155 !important; color:#64748b !important; cursor:not-allowed; opacity:0.6; }
+.btn-subtext { font-size:10px; opacity:0.8; font-weight:normal; }
+#toast-container { position:fixed; top:65px; right:15px; z-index:9999; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+.toast { background:#17212d; color:#fff; padding:10px 16px; border-radius:6px; border-left:4px solid #00e676; box-shadow:0 4px 12px rgba(0,0,0,0.5); font-size:13px; font-weight:600; opacity:0; transform:translateX(50px); transition:all 0.3s ease; }
+.toast.show { opacity:1; transform:translateX(0); }
+.toast.error { border-left-color:#ff5252; }
+.toast.warning { border-left-color:#ffb74d; }
+.tx-modal { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:300; display:none; align-items:center; justify-content:center; padding:15px; }
+.tx-modal.show { display:flex; }
+.tx-modal-content { width:100%; max-width:460px; max-height:88vh; background:#131b26; border-radius:12px; border:1px solid #233142; display:flex; flex-direction:column; overflow:hidden; }
+.tx-modal-head { padding:14px 16px; border-bottom:1px solid #233142; display:flex; justify-content:space-between; align-items:center; }
+.tx-modal-head span { font-weight:bold; font-size:15px; }
+.tx-close { background:none; border:none; color:#8a9ba8; font-size:20px; cursor:pointer; padding:0 4px; }
+.tx-close:hover { color:#fff; }
+.tx-modal-body { padding:12px; overflow-y:auto; flex:1; }
+.tx-empty { text-align:center; color:#8a9ba8; padding:40px 20px; font-size:13px; }
+.tx-item { background:#17212d; border-radius:8px; padding:11px 13px; margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+.tx-icon { flex-shrink:0; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#0d141e; border:1px solid #233142; }
+.tx-icon svg { width:19px; height:19px; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.tx-icon.credit { color:#00e676; border-color:rgba(0,230,118,0.35); background:rgba(0,230,118,0.08); }
+.tx-icon.debit  { color:#ff5252; border-color:rgba(255,82,82,0.35); background:rgba(255,82,82,0.08); }
+.tx-icon.neutral { color:#8a9ba8; }
+.tx-item .tx-info { display:flex; flex-direction:column; gap:3px; flex:1; min-width:0; }
+.tx-item .tx-type { font-size:13px; font-weight:700; color:#fff; }
+.tx-item .tx-note { font-size:11px; color:#8a9ba8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tx-item .tx-date { font-size:10px; color:#4d5c6b; }
+.tx-item .tx-amt { font-size:15px; font-weight:bold; white-space:nowrap; }
+.tx-item .tx-amt.pos { color:#00e676; }
+.tx-item .tx-amt.neg { color:#ff5252; }
+.learn-body { padding:14px 16px; overflow-y:auto; flex:1; font-size:13px; line-height:1.75; color:#c2d1d9; }
+.learn-body h3 { color:#00e676; font-size:14px; margin:16px 0 8px; letter-spacing:0.3px; text-transform:uppercase; }
+.learn-body h3:first-child { margin-top:0; }
+.learn-body p { margin-bottom:10px; }
+.learn-body ul { padding-left:18px; margin-bottom:10px; }
+.learn-body li { margin-bottom:6px; }
+.learn-body strong { color:#fff; }
+.learn-body .hl { color:#00e676; font-weight:600; }
+.learn-body .warn { color:#ff5252; font-weight:600; }
+.learn-body .tip-num { display:inline-block; background:rgba(0,230,118,0.12); color:#00e676; padding:1px 7px; border-radius:4px; font-weight:700; margin-right:6px; font-size:11px; }
+.pattern-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; padding:12px; }
+.pattern-card { background:#17212d; border:1px solid #233142; border-radius:10px; padding:8px; cursor:pointer; transition:all 0.2s; overflow:hidden; }
+.pattern-card:hover { border-color:#00e676; transform:translateY(-2px); }
+.pattern-card:active { transform:translateY(0); }
+.pattern-card canvas { width:100%; height:72px; display:block; border-radius:6px; background:#0d141e; }
+.pattern-card .p-name { font-size:11px; font-weight:700; color:#fff; margin-top:6px; text-align:center; }
+.pattern-card .p-tag { font-size:9px; text-align:center; margin-top:2px; letter-spacing:0.5px; text-transform:uppercase; font-weight:700; }
+.p-tag.bull { color:#00e676; }
+.p-tag.bear { color:#ff5252; }
+.p-tag.neutral { color:#ffb74d; }
+.pattern-detail-body { padding:14px 16px; overflow-y:auto; flex:1; }
+.pattern-detail-body canvas { width:100%; height:180px; display:block; border-radius:8px; background:#0d141e; border:1px solid #233142; }
+.pattern-detail-body .p-big-name { font-size:18px; font-weight:800; margin:14px 0 4px; color:#fff; }
+.pattern-detail-body .p-big-tag { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:14px; }
+.pattern-detail-body .p-big-desc { font-size:13px; line-height:1.75; color:#c2d1d9; white-space:pre-wrap; }
+.pattern-detail-body .p-big-desc strong { color:#00e676; }
+.cs-modal { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:400; display:none; align-items:center; justify-content:center; padding:12px; }
+.cs-modal.show { display:flex; }
+.cs-modal-content { width:100%; max-width:440px; height:88vh; max-height:680px; background:#131b26; border-radius:14px; border:1px solid #233142; display:flex; flex-direction:column; overflow:hidden; }
+.cs-head { padding:12px 14px; border-bottom:1px solid #233142; display:flex; justify-content:space-between; align-items:center; background:#17212d; }
+.cs-head-left { display:flex; align-items:center; gap:10px; }
+.cs-logo-c { width:42px; height:42px; display:block; }
+.cs-title { font-size:14px; font-weight:bold; color:#fff; }
+.cs-status { font-size:11px; color:#00e676; display:flex; align-items:center; gap:5px; margin-top:3px; }
+.cs-status::before { content:''; width:6px; height:6px; background:#00e676; border-radius:50%; box-shadow:0 0 6px #00e676; }
+.cs-close { background:none; border:none; color:#8a9ba8; font-size:22px; cursor:pointer; padding:0 4px; }
+.cs-close:hover { color:#fff; }
+.cs-messages { flex:1; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:6px; background:#0d141e; }
+.cs-msg { display:flex; flex-direction:column; max-width:80%; margin-bottom:2px; }
+.cs-msg-out { align-self:flex-end; align-items:flex-end; }
+.cs-msg-in { align-self:flex-start; align-items:flex-start; }
+.cs-bubble { padding:9px 13px; border-radius:16px; font-size:13px; line-height:1.45; word-wrap:break-word; word-break:break-word; }
+.cs-msg-out .cs-bubble { background:#005c4b; color:#fff; border-bottom-right-radius:4px; }
+.cs-msg-in .cs-bubble { background:#202c3a; color:#fff; border-bottom-left-radius:4px; }
+.cs-time { font-size:10px; color:#4d5c6b; margin-top:3px; padding:0 4px; }
+.cs-input-bar { padding:10px 12px; border-top:1px solid #233142; display:flex; gap:8px; background:#17212d; align-items:center; }
+.cs-input-bar input { flex:1; background:#0d141e; border:1px solid #233142; color:#fff; padding:10px 14px; border-radius:22px; font-size:13px; outline:none; }
+.cs-input-bar input:focus { border-color:#00e676; }
+.cs-input-bar button { background:#00e676; color:#000; border:none; width:42px; height:42px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.cs-input-bar button:disabled { background:#334155; color:#64748b; cursor:not-allowed; }
+.cs-input-bar button svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+</style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<!-- Loading overlay — hides once Firebase user is loaded -->
+<div id="loadingOverlay" style="position:fixed;inset:0;background:#0d141e;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;">
+    <div style="width:44px;height:44px;border:3px solid rgba(0,230,118,0.2);border-top-color:#00e676;border-radius:50%;animation:spinLoad 0.8s linear infinite;"></div>
+    <div style="font-size:12px;color:#8a9ba8;font-weight:600;letter-spacing:1.5px;">LOADING PROFILE…</div>
+    <style>@keyframes spinLoad{to{transform:rotate(360deg)}}</style>
+</div>
+
+<div class="header">
+    <div class="header-left">
+        <button class="icon-btn" id="open-left-btn">☰</button>
+        <div class="account-info">
+            <span class="uid-text">UID: <strong id="top-uid">—</strong></span>
+            <span class="balance-text" id="top-balance">₹0.00</span>
+        </div>
+    </div>
+    <div class="header-right">
+        <div class="online-badge"><span class="online-dot"></span><span id="online-count">4,285 online</span></div>
+        <button class="icon-btn" id="open-right-btn">⟨</button>
+    </div>
+</div>
+<div class="asset-bar-container" id="asset-bar"></div>
+<div class="main-viewport">
+    <div class="backdrop" id="backdrop"></div>
+    <div class="chart-container" id="chart-container">
+        <div class="zoom-indicator" id="zoom-indicator">1.0×</div>
+        <div class="status-bar-overlay">
+            <div class="prd-box"><div class="prd-label">Period Number</div><div class="prd-value" id="prd-display">—</div></div>
+            <div class="timer-box"><div class="timer-label">Expiration</div><div class="timer-value" id="timer-display">00:30</div></div>
+        </div>
+        <canvas id="tradingChart"></canvas>
+    </div>
+    <div class="trade-control-panel">
+        <div class="input-group"><span class="input-label">Investment</span><input type="number" id="trade-amount" class="amount-input" value="50" min="10" step="10"></div>
+        <button class="btn-trade up" id="btn-up">▲ CALL (UP)<span class="btn-subtext" id="up-subtext">+85% Return</span></button>
+        <button class="btn-trade down" id="btn-down">▼ PUT (DOWN)<span class="btn-subtext" id="down-subtext">+85% Return</span></button>
+    </div>
+
+    <div class="drawer-left" id="drawer-left">
+        <div class="profile-card">
+            <div class="balance-box" id="drawer-balance">₹0.00</div>
+            <div class="uid-box" id="drawer-uid">UID: —</div>
+            <div class="user-name" id="drawer-username">—</div>
+        </div>
+        <div class="action-buttons"><a href="deposit.html" class="btn-deposit">Deposit</a><a href="withdrawal.html" class="btn-withdraw">Withdrawal</a></div>
+        <div class="menu-list">
+            <div class="menu-item" id="history-btn">
+                <div class="menu-left-content">
+                    <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Transaction History</span>
+                </div><span>❯</span>
+            </div>
+            <div class="menu-item" id="cs-btn">
+                <div class="menu-left-content">
+                    <canvas class="cs-icon-canvas" width="36" height="36"></canvas>
+                    <span>Customer Service</span>
+                </div><span>❯</span>
+            </div>
+            <div class="menu-item" id="logout-btn" style="color:#ff5252; margin-top:15px;">
+                <div class="menu-left-content">
+                    <svg viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span>Logout</span>
+                </div><span>❯</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="drawer-right" id="drawer-right">
+        <div style="font-weight:bold; margin-bottom:14px; font-size:15px; color:#fff;">📚 Learning Center</div>
+        <div class="menu-list">
+            <div class="menu-item" id="learn-btn">
+                <div class="menu-left-content">
+                    <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    <span>How to Learn Quotex</span>
+                </div><span>❯</span>
+            </div>
+            <div class="menu-item" id="tips-btn">
+                <div class="menu-left-content">
+                    <svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+                    <span>Trading Tips</span>
+                </div><span>❯</span>
+            </div>
+            <div class="menu-item" id="patterns-btn">
+                <div class="menu-left-content">
+                    <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8"/><rect x="12" y="6" width="3" height="12"/><rect x="17" y="12" width="3" height="6"/></svg>
+                    <span>Chart Patterns (15)</span>
+                </div><span>❯</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="tx-modal" id="txModal">
+    <div class="tx-modal-content">
+        <div class="tx-modal-head"><span>Transaction History</span><button class="tx-close" id="txClose">✕</button></div>
+        <div class="tx-modal-body" id="txModalBody"></div>
+    </div>
+</div>
+
+<div class="cs-modal" id="csModal">
+    <div class="cs-modal-content">
+        <div class="cs-head">
+            <div class="cs-head-left">
+                <canvas class="cs-logo-c" id="csHeaderLogo" width="84" height="84"></canvas>
+                <div>
+                    <div class="cs-title">Customer Service</div>
+                    <div class="cs-status">Online</div>
+                </div>
+            </div>
+            <button class="cs-close" id="csClose">✕</button>
+        </div>
+        <div class="cs-messages" id="csMessages">
+            <div class="cs-empty">Loading chat…</div>
+        </div>
+        <div class="cs-input-bar">
+            <input type="text" id="csInput" placeholder="Type your message…">
+            <button id="csSendBtn" title="Send">
+                <svg viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="tx-modal" id="learnModal">
+    <div class="tx-modal-content">
+        <div class="tx-modal-head"><span>How to Learn Quotex Trading</span><button class="tx-close" id="learnClose">✕</button></div>
+        <div class="learn-body">
+            <h3>1. What is Quotex?</h3>
+            <p>Quotex is a <span class="hl">binary options trading platform</span> where you predict whether the price will move up (CALL) or down (PUT) in the next candle. If your prediction is correct, you earn <span class="hl">85% profit</span>; if wrong, you lose the full investment. This is a high-risk game, so practicing on demo first is essential.</p>
+
+            <h3>2. Understand the Platform Layout</h3>
+            <p>The platform is divided into 5 main parts:</p>
+            <ul>
+                <li><strong>Top Header</strong> — UID, balance, and online users.</li>
+                <li><strong>Asset Bar</strong> — Pairs like INR/USD, EUR/USD, GBP/USD, USD/JPY, AUD/USD.</li>
+                <li><strong>Chart</strong> — 30-second candles, timer, and period number.</li>
+                <li><strong>Trade Panel</strong> — Investment amount, CALL (green) and PUT (red) buttons.</li>
+                <li><strong>Left Drawer</strong> — Deposit, Withdrawal, Transaction History, Logout.</li>
+            </ul>
+
+            <h3>3. What is a Candlestick?</h3>
+            <p>Each candle represents a 30-second time period. It has 4 parts:</p>
+            <ul>
+                <li><strong>Open</strong> — Price when the period starts.</li>
+                <li><strong>Close</strong> — Price when the period ends.</li>
+                <li><strong>High</strong> — The highest price reached.</li>
+                <li><strong>Low</strong> — The lowest price reached.</li>
+            </ul>
+            <p><span class="hl">Green candle</span> = close > open (price rose). <span class="warn">Red candle</span> = close < open (price fell). The bigger the body, the stronger the move. The longer the wick, the higher the volatility.</p>
+
+            <h3>4. How Do You Place a Trade?</h3>
+            <p>Follow these steps:</p>
+            <ul>
+                <li><strong>Step 1:</strong> Tap an asset chip to choose a pair.</li>
+                <li><strong>Step 2:</strong> Enter the investment amount (start with ₹10).</li>
+                <li><strong>Step 3:</strong> Watch the timer — betting locks in the last 10 seconds.</li>
+                <li><strong>Step 4:</strong> If you think the price will rise, tap <span class="hl">CALL (green)</span>; if it will fall, tap <span class="warn">PUT (red)</span>.</li>
+                <li><strong>Step 5:</strong> When 30 seconds end, the result appears — win gives +85% profit, loss takes the amount.</li>
+            </ul>
+
+            <h3>5. How to Practice on Demo</h3>
+            <p>Start with only <strong>₹10–₹50</strong> per trade. Do 20–30 trades a day and track your win percentage. If you're above 55% win rate, you can move forward. <span class="warn">But remember — this is demo; real markets are random.</span></p>
+
+            <h3>6. Is Prediction Actually Possible?</h3>
+            <p>The truth is <strong>no one can predict with 100% accuracy</strong>. Candle direction is random. Therefore:</p>
+            <ul>
+                <li>Try to follow trends, but confirmation is difficult.</li>
+                <li>Never use martingale (doubling after a loss) — you can hit 5 losses in a row.</li>
+                <li>Place only one trade at a time, don't panic.</li>
+                <li>Set a stop loss — max 5 trades a day, max 3 losses.</li>
+            </ul>
+
+            <h3>7. The Biggest Mistakes</h3>
+            <ul>
+                <li><span class="warn">Emotional trading</span> — placing a big bet after a loss out of anger.</li>
+                <li><span class="warn">All-in on one trade</span> — sometimes a single trade wipes everything out.</li>
+                <li><span class="warn">Blind trust in tips or signals</span> — no signal is 100% correct.</li>
+                <li><span class="warn">Trading with borrowed money</span> — never do this.</li>
+            </ul>
+
+            <h3>8. The Path Forward</h3>
+            <p>Spend your first 30 days on demo only. Note every trade. Learn the patterns that keep working. The Chart Patterns section has 15 classic patterns — study them; they will help in real life. But always remember: <strong>in trading, only practice, discipline, and risk management let you survive.</strong></p>
+
+            <p style="margin-top:20px; padding:12px; background:rgba(255,82,82,0.08); border-left:3px solid #ff5252; border-radius:6px; font-size:12px;"><strong>⚠ Disclaimer:</strong> This platform is an educational demo. Consult your financial advisor before using real money. 90% of retail traders lose money.</p>
+        </div>
+    </div>
+</div>
+
+<div class="tx-modal" id="tipsModal">
+    <div class="tx-modal-content">
+        <div class="tx-modal-head"><span>Trading Tips — 50 Rules</span><button class="tx-close" id="tipsClose">✕</button></div>
+        <div class="learn-body">
+            <h3>Money Management</h3>
+            <p><span class="tip-num">1</span>Risk only <strong>max 2%</strong> of your balance per trade.</p>
+            <p><span class="tip-num">2</span>Set a daily target — 5% profit or 5% loss, then stop.</p>
+            <p><span class="tip-num">3</span>Never use martingale (doubling after a loss).</p>
+            <p><span class="tip-num">4</span>Only risk what you can afford to lose.</p>
+            <p><span class="tip-num">5</span>Keep 60% of your capital in cash at the end of the day.</p>
+            <p><span class="tip-num">6</span>Never trade with loan, EMI, or borrowed money.</p>
+            <p><span class="tip-num">7</span>Do not exceed 10 trades per day.</p>
+            <p><span class="tip-num">8</span>Withdraw 50% of weekly profit and keep it aside.</p>
+
+            <h3>Entry Rules</h3>
+            <p><span class="tip-num">9</span>Only trade pairs you understand.</p>
+            <p><span class="tip-num">10</span>After a big move, wait for a small pullback.</p>
+            <p><span class="tip-num">11</span>Never place a bet during the last 10 seconds (locked time).</p>
+            <p><span class="tip-num">12</span>Focus on just one asset at a time.</p>
+            <p><span class="tip-num">13</span>Avoid trading around news events — volatility is high.</p>
+            <p><span class="tip-num">14</span>After 3 consecutive losses, take a 30-min break.</p>
+            <p><span class="tip-num">15</span>If you're bored, tired, or angry — stop trading.</p>
+
+            <h3>Psychology</h3>
+            <p><span class="tip-num">16</span>Do not get overconfident during a win streak — the market can flip.</p>
+            <p><span class="tip-num">17</span>Never chase losses — revenge trading is the most dangerous habit.</p>
+            <p><span class="tip-num">18</span>Write down the reason for every trade — "why did I place this?" Review later.</p>
+            <p><span class="tip-num">19</span>Limit screen time — no more than 2 hours.</p>
+            <p><span class="tip-num">20</span>Keep your phone silent while trading — no distractions.</p>
+            <p><span class="tip-num">21</span>After a loss, wait 5 minutes before the next trade.</p>
+            <p><span class="tip-num">22</span>Happy on profit, sad on loss — both emotions ruin trading.</p>
+
+            <h3>Chart Reading</h3>
+            <p><span class="tip-num">23</span>Small body + long wick = indecision — avoid.</p>
+            <p><span class="tip-num">24</span>A Doji may lead to reversal, but confirm with the next candle.</p>
+            <p><span class="tip-num">25</span>Hammer at the bottom = bullish hint. Shooting star at the top = bearish hint.</p>
+            <p><span class="tip-num">26</span>After three consecutive green candles, a red one is more likely.</p>
+            <p><span class="tip-num">27</span>Big body candles indicate a strong trend — follow them.</p>
+            <p><span class="tip-num">28</span>A cluster of small candles = consolidation — wait for a breakout.</p>
+            <p><span class="tip-num">29</span>Wick rejection zones matter — reversals often start there.</p>
+            <p><span class="tip-num">30</span>Zoom into the chart — you'll miss small patterns otherwise.</p>
+
+            <h3>Beginner Mistakes</h3>
+            <p><span class="tip-num">31</span>Skipping demo and going straight to real money.</p>
+            <p><span class="tip-num">32</span>Blindly trusting YouTube tips.</p>
+            <p><span class="tip-num">33</span>Joining signal groups and losing money.</p>
+            <p><span class="tip-num">34</span>Doing 100 trades a day.</p>
+            <p><span class="tip-num">35</span>Obsessing over covering every loss.</p>
+            <p><span class="tip-num">36</span>Taking random entries with no plan.</p>
+            <p><span class="tip-num">37</span>Believing "guaranteed profit" bots.</p>
+            <p><span class="tip-num">38</span>Treating trading like gambling.</p>
+
+            <h3>Pro Habits</h3>
+            <p><span class="tip-num">39</span>Trade only in a fixed time slot each day.</p>
+            <p><span class="tip-num">40</span>Maintain a weekly journal — track your win rate.</p>
+            <p><span class="tip-num">41</span>Stick to one strategy for 30 days; don't change every 5 minutes.</p>
+            <p><span class="tip-num">42</span>Celebrate small wins; don't increase risk chasing big ones.</p>
+            <p><span class="tip-num">43</span>Review your chart for 10 minutes after trading.</p>
+            <p><span class="tip-num">44</span>Take care of your health — sleep, food, exercise.</p>
+            <p><span class="tip-num">45</span>After every trade, ask: "Should I have taken this?"</p>
+            <p><span class="tip-num">46</span>Stay disciplined even on boring days.</p>
+            <p><span class="tip-num">47</span>Write your rules and stick them near your screen.</p>
+            <p><span class="tip-num">48</span>Don't over-trade even on good days.</p>
+            <p><span class="tip-num">49</span>Trade only with your own money, never borrowed.</p>
+            <p><span class="tip-num">50</span>Most importantly: <strong>surviving is the biggest profit of all</strong>.</p>
+
+            <p style="margin-top:20px; padding:12px; background:rgba(255,82,82,0.08); border-left:3px solid #ff5252; border-radius:6px; font-size:12px;"><strong>⚠ Remember:</strong> No tip is 100% guaranteed. This is general guidance only. Trade at your own risk.</p>
+        </div>
+    </div>
+</div>
+
+<div class="tx-modal" id="patternsModal">
+    <div class="tx-modal-content">
+        <div class="tx-modal-head"><span>Chart Patterns — 15 Classics</span><button class="tx-close" id="patternsClose">✕</button></div>
+        <div class="tx-modal-body" style="padding:0;">
+            <div class="pattern-grid" id="patternGrid"></div>
+        </div>
+    </div>
+</div>
+
+<div class="tx-modal" id="patternDetailModal">
+    <div class="tx-modal-content">
+        <div class="tx-modal-head"><span id="pDetailTitle">Pattern</span><button class="tx-close" id="pDetailClose">✕</button></div>
+        <div class="pattern-detail-body">
+            <canvas id="bigPatternCanvas" width="820" height="360"></canvas>
+            <div class="p-big-name" id="pBigName"></div>
+            <div class="p-big-tag" id="pBigTag"></div>
+            <div class="p-big-desc" id="pBigDesc"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function showToast(msg, type='success') {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`; t.innerText = msg;
+    c.appendChild(t);
+    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2500);
+}
+window.showToast = showToast;
+function formatCurrency(a) { const p = parseFloat(a); return isNaN(p) ? '0.00' : p.toFixed(2); }
+
+/* ============================================================
+   STORAGE HELPERS (kept as offline cache/fallback)
+   ============================================================ */
+function getAllUsers() { try { return JSON.parse(localStorage.getItem('allUsers') || '{}'); } catch(e) { return {}; } }
+function saveAllUsers(u) { localStorage.setItem('allUsers', JSON.stringify(u)); }
+function getTx(uid) { try { return JSON.parse(localStorage.getItem('tx_' + uid) || '[]'); } catch(e) { return []; } }
+function saveTx(uid, list) { if (list.length > 500) list = list.slice(0, 500); localStorage.setItem('tx_' + uid, JSON.stringify(list)); }
+
+// addTx kept — writes locally AND dispatches Firebase event
+function addTx(uid, tx) {
+    const l = getTx(uid);
+    l.unshift({ ...tx, date: Date.now() });
+    saveTx(uid, l);
+    // Mirror to Firebase
+    window.dispatchEvent(new CustomEvent('vertex:add-tx', { detail: tx }));
+}
+window.addTx = addTx;
+
+let forcedCache = {};
+function refreshForced() { try { forcedCache = JSON.parse(localStorage.getItem('forcedDirections') || '{}'); } catch(e) { forcedCache = {}; } }
+refreshForced();
+setInterval(refreshForced, 1500);
+window.addEventListener('storage', refreshForced);
+
+let periodBets = {};
+function loadBets() { try { periodBets = JSON.parse(localStorage.getItem('periodBets') || '{}'); } catch(e) { periodBets = {}; } }
+function saveBets() {
+    const keys = Object.keys(periodBets).sort((a,b) => Number(b) - Number(a));
+    if (keys.length > 60) {
+        const trimmed = {};
+        keys.slice(0, 60).forEach(k => trimmed[k] = periodBets[k]);
+        periodBets = trimmed;
+    }
+    localStorage.setItem('periodBets', JSON.stringify(periodBets));
+}
+function recordBet(periodNum, direction, amount) {
+    if (!periodBets[periodNum]) periodBets[periodNum] = { up:0, down:0 };
+    if (direction === 'up') periodBets[periodNum].up += amount;
+    else periodBets[periodNum].down += amount;
+    saveBets();
+    // Mirror to Firebase
+    window.dispatchEvent(new CustomEvent('vertex:record-bet', { detail: { periodNum, direction, amount } }));
+}
+loadBets();
+setInterval(loadBets, 2000);
+window.addEventListener('storage', loadBets);
+
+// Firebase pushed events override local caches
+window.addEventListener('vertex:forced', (e) => { forcedCache = e.detail || {}; });
+window.addEventListener('vertex:bets',   (e) => { periodBets  = e.detail || {}; });
+
+/* ============================================================
+   USER DATA — Firebase-first, NO demo fallback
+   ============================================================ */
+let userData = null;
+try {
+    const stored = localStorage.getItem('activeUser');
+    if (stored) userData = JSON.parse(stored);
+} catch(e) {}
+
+// If no valid session → redirect to login (no demo user)
+if (!userData || !userData.uid || !userData.phone) {
+    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#8a9ba8;font-family:sans-serif;font-size:14px;text-align:center;padding:20px;">Session expired.<br>Redirecting to login…</div>';
+    setTimeout(() => window.location.replace('index.html'), 300);
+    throw new Error('Not logged in');
+}
+
+// Firebase module uses this to push fresh data into the UI
+window.updateUserData = function(fresh) {
+    if (!fresh) return;
+    Object.assign(userData, fresh);
+    localStorage.setItem('activeUser', JSON.stringify(userData));
+    updateBalanceDisplay();
+    const lo = document.getElementById('loadingOverlay');
+    if (lo) lo.style.display = 'none';
+};
+window.getUserData = function() { return userData; };
+window.hideLoading = function() {
+    const lo = document.getElementById('loadingOverlay');
+    if (lo) lo.style.display = 'none';
+};
+
+// Initial display (will be overwritten by Firebase data)
+updateBalanceDisplay();
+
+function updateBalanceDisplay() {
+    if (!userData) return;
+    const f = formatCurrency(userData.wallet || 0);
+    document.getElementById('top-uid').innerText = userData.uid || '—';
+    document.getElementById('top-balance').innerText = '₹' + f;
+    document.getElementById('drawer-uid').innerText = 'UID: ' + (userData.uid || '—');
+    document.getElementById('drawer-balance').innerText = '₹' + f;
+    const name = ((userData.firstName || '') + ' ' + (userData.lastName || '')).trim();
+    document.getElementById('drawer-username').innerText = name || '—';
+}
+
+// Save — updates localStorage, UI, and pushes to Firebase
+function syncUserLocal() {
+    localStorage.setItem('activeUser', JSON.stringify(userData));
+    updateBalanceDisplay();
+    window.dispatchEvent(new CustomEvent('vertex:save-user', { detail: {
+        phone: userData.phone,
+        uid: userData.uid,
+        wallet: userData.wallet,
+        firstName: userData.firstName,
+        lastName: userData.lastName
+    }}));
+}
+window.syncUserLocal = syncUserLocal;
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+    localStorage.removeItem('activeUser');
+    window.location.href = 'index.html';
+});
+
+/* ============================================================
+   TX ICONS
+   ============================================================ */
+const TX_ICONS = {
+    deposit: `<svg viewBox="0 0 24 24"><path d="M12 3v11"/><path d="M7.5 9.5L12 14l4.5-4.5"/><path d="M4 17v2.5h16V17"/></svg>`,
+    bonus:   `<svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="12" rx="1"/><path d="M3 13h18M12 9v12"/><path d="M12 9c-1.8-3-6-3-6 0"/><path d="M12 9c1.8-3 6-3 6 0"/></svg>`,
+    withdrawal: `<svg viewBox="0 0 24 24"><path d="M12 21V10"/><path d="M7.5 14.5L12 10l4.5 4.5"/><path d="M4 7V4.5h16V7"/></svg>`,
+    adjustment: `<svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3"/><circle cx="15" cy="7" r="2"/><path d="M4 12h3M11 12h9"/><circle cx="9" cy="12" r="2"/><path d="M4 17h9M17 17h3"/><circle cx="15" cy="17" r="2"/></svg>`,
+    penalty: `<svg viewBox="0 0 24 24"><path d="M12 3.5L2.5 20h19z"/><path d="M12 10v4.2"/><circle cx="12" cy="17.2" r="0.6" fill="currentColor" stroke="none"/></svg>`,
+    trade_win: `<svg viewBox="0 0 24 24"><path d="M4 18l5-5 4 4 7-8"/><path d="M15 9h5v5"/></svg>`,
+    trade_loss: `<svg viewBox="0 0 24 24"><path d="M4 6l5 5 4-4 7 8"/><path d="M15 15h5v-5"/></svg>`
+};
+function txMeta(t) {
+    switch (t.type) {
+        case 'deposit':    return { title:'Deposit',        note:t.note||'Amount credited',  icon:TX_ICONS.deposit,    kind:t.amount>=0?'credit':'debit' };
+        case 'bonus':      return { title:'Bonus Credited', note:t.note||'Bonus added',      icon:TX_ICONS.bonus,      kind:'credit' };
+        case 'withdrawal': return { title:'Withdrawal',     note:t.note||'Amount withdrawn', icon:TX_ICONS.withdrawal, kind:'debit'  };
+        case 'adjustment': return { title:'Adjustment',     note:t.note||'Balance adjusted', icon:TX_ICONS.adjustment, kind:t.amount>=0?'credit':'debit' };
+        case 'penalty':    return { title:'Penalty',        note:t.note||'Penalty applied',  icon:TX_ICONS.penalty,    kind:'debit'  };
+        case 'trade_win':  return { title:'Trade Won',      note:t.note||'Trade profit',     icon:TX_ICONS.trade_win,  kind:'credit' };
+        case 'trade_loss': return { title:'Trade Lost',     note:t.note||'Trade loss',       icon:TX_ICONS.trade_loss, kind:'debit'  };
+        default:           return { title:t.type,           note:t.note||'',                 icon:TX_ICONS.adjustment, kind:t.amount>=0?'credit':'debit' };
+    }
+}
+const txModal = document.getElementById('txModal');
+const txModalBody = document.getElementById('txModalBody');
+
+// Local fallback renderer (used if Firebase hasn't replied yet)
+function renderTxModal() {
+    const list = getTx(userData.uid);
+    if (!list.length) { txModalBody.innerHTML = '<div class="tx-empty">No transactions yet</div>'; return; }
+    txModalBody.innerHTML = list.map(t => {
+        const m = txMeta(t);
+        const pos = t.amount >= 0;
+        const kindClass = m.kind === 'credit' ? 'credit' : (m.kind === 'debit' ? 'debit' : 'neutral');
+        return `<div class="tx-item">
+            <div class="tx-icon ${kindClass}">${m.icon}</div>
+            <div class="tx-info">
+                <div class="tx-type">${m.title}</div>
+                ${m.note ? `<div class="tx-note">${m.note}</div>` : ''}
+                <div class="tx-date">${new Date(t.date).toLocaleString()}</div>
+            </div>
+            <div class="tx-amt ${pos?'pos':'neg'}">${pos?'+':''}₹${Math.abs(t.amount).toFixed(2)}</div>
+        </div>`;
+    }).join('');
+}
+
+// Firebase module calls this to render its own list
+window.renderTxList = function(list) {
+    if (!list || !list.length) {
+        txModalBody.innerHTML = '<div class="tx-empty">No transactions yet</div>';
+        return;
+    }
+    txModalBody.innerHTML = list.map(t => {
+        const m = txMeta(t);
+        const pos = t.amount >= 0;
+        const kindClass = m.kind === 'credit' ? 'credit' : (m.kind === 'debit' ? 'debit' : 'neutral');
+        const dt = new Date(t.date || t.timestamp || Date.now());
+        return `<div class="tx-item">
+            <div class="tx-icon ${kindClass}">${m.icon}</div>
+            <div class="tx-info">
+                <div class="tx-type">${m.title}</div>
+                ${m.note ? `<div class="tx-note">${m.note}</div>` : ''}
+                <div class="tx-date">${dt.toLocaleString()}</div>
+            </div>
+            <div class="tx-amt ${pos?'pos':'neg'}">${pos?'+':''}₹${Math.abs(t.amount).toFixed(2)}</div>
+        </div>`;
+    }).join('');
+};
+
+/* ============================================================
+   DRAWERS
+   ============================================================ */
+const drawerLeft  = document.getElementById('drawer-left');
+const drawerRight = document.getElementById('drawer-right');
+const backdrop    = document.getElementById('backdrop');
+document.getElementById('open-left-btn').addEventListener('click', () => { drawerLeft.classList.add('active'); backdrop.classList.add('active'); });
+document.getElementById('open-right-btn').addEventListener('click', () => { drawerRight.classList.add('active'); backdrop.classList.add('active'); });
+backdrop.addEventListener('click', () => { drawerLeft.classList.remove('active'); drawerRight.classList.remove('active'); backdrop.classList.remove('active'); });
+
+document.getElementById('history-btn').addEventListener('click', () => {
+    // Show loading state, then fetch from Firebase
+    txModalBody.innerHTML = '<div class="tx-empty">Loading…</div>';
+    txModal.classList.add('show');
+    drawerLeft.classList.remove('active');
+    backdrop.classList.remove('active');
+    window.dispatchEvent(new CustomEvent('vertex:load-tx'));
+});
+document.getElementById('txClose').addEventListener('click', () => txModal.classList.remove('show'));
+txModal.addEventListener('click', (e) => { if (e.target === txModal) txModal.classList.remove('show'); });
+
+const learnModal = document.getElementById('learnModal');
+const tipsModal = document.getElementById('tipsModal');
+const patternsModal = document.getElementById('patternsModal');
+const patternDetailModal = document.getElementById('patternDetailModal');
+
+document.getElementById('learn-btn').addEventListener('click', () => {
+    learnModal.classList.add('show');
+    drawerRight.classList.remove('active'); backdrop.classList.remove('active');
+});
+document.getElementById('tips-btn').addEventListener('click', () => {
+    tipsModal.classList.add('show');
+    drawerRight.classList.remove('active'); backdrop.classList.remove('active');
+});
+document.getElementById('patterns-btn').addEventListener('click', () => {
+    patternsModal.classList.add('show');
+    drawerRight.classList.remove('active'); backdrop.classList.remove('active');
+    renderPatternGrid();
+});
+document.getElementById('learnClose').addEventListener('click', () => learnModal.classList.remove('show'));
+document.getElementById('tipsClose').addEventListener('click', () => tipsModal.classList.remove('show'));
+document.getElementById('patternsClose').addEventListener('click', () => patternsModal.classList.remove('show'));
+document.getElementById('pDetailClose').addEventListener('click', () => patternDetailModal.classList.remove('show'));
+[learnModal, tipsModal, patternsModal, patternDetailModal].forEach(m => {
+    m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); });
+});
+
+let currentOnline = Math.floor(Math.random() * 1000) + 3500;
+setInterval(() => {
+    currentOnline += Math.floor(Math.random() * 21) - 10;
+    document.getElementById('online-count').innerText = currentOnline.toLocaleString() + ' online';
+}, 3000);
+
+/* ============================================================
+   CS CANVAS ICON — sketch chat bubble
+   ============================================================ */
+function drawCsBubbleIcon(canvasEl, color) {
+    if (!canvasEl) return;
+    const ctx2 = canvasEl.getContext('2d');
+    const W = canvasEl.width, H = canvasEl.height;
+    ctx2.clearRect(0, 0, W, H);
+    const padX = W * 0.14;
+    const padY = H * 0.18;
+    const bw = W - padX * 2;
+    const bh = H - padY * 2 - H * 0.16;
+    const r = W * 0.20;
+    ctx2.strokeStyle = color || '#c2d1d9';
+    ctx2.lineWidth = W * 0.075;
+    ctx2.lineJoin = 'round';
+    ctx2.lineCap = 'round';
+
+    ctx2.beginPath();
+    ctx2.moveTo(padX + r, padY);
+    ctx2.lineTo(padX + bw - r, padY);
+    ctx2.quadraticCurveTo(padX + bw, padY, padX + bw, padY + r);
+    ctx2.lineTo(padX + bw, padY + bh - r);
+    ctx2.quadraticCurveTo(padX + bw, padY + bh, padX + bw - r, padY + bh);
+    ctx2.lineTo(padX + bw * 0.35, padY + bh);
+    ctx2.lineTo(padX + bw * 0.18, padY + bh + H * 0.13);
+    ctx2.lineTo(padX + bw * 0.24, padY + bh);
+    ctx2.lineTo(padX + r, padY + bh);
+    ctx2.quadraticCurveTo(padX, padY + bh, padX, padY + bh - r);
+    ctx2.lineTo(padX, padY + r);
+    ctx2.quadraticCurveTo(padX, padY, padX + r, padY);
+    ctx2.closePath();
+    ctx2.stroke();
+
+    ctx2.fillStyle = color || '#c2d1d9';
+    const dotR = W * 0.045;
+    const cy = padY + bh / 2;
+    const cx = padX + bw / 2;
+    ctx2.beginPath(); ctx2.arc(cx - W * 0.11, cy, dotR, 0, Math.PI * 2); ctx2.fill();
+    ctx2.beginPath(); ctx2.arc(cx, cy, dotR, 0, Math.PI * 2); ctx2.fill();
+    ctx2.beginPath(); ctx2.arc(cx + W * 0.11, cy, dotR, 0, Math.PI * 2); ctx2.fill();
+}
+document.querySelectorAll('.cs-icon-canvas').forEach(c => drawCsBubbleIcon(c, '#c2d1d9'));
+drawCsBubbleIcon(document.getElementById('csHeaderLogo'), '#00e676');
+
+/* ============================================================
+   CHART PATTERNS DATA — English
+   ============================================================ */
+const PATTERNS = [
+    { id:'doji', name:'Doji', type:'neutral', candles:[{o:50,h:56,l:44,c:50}], desc:`A Doji is a neutral candle where the open and close are almost at the same level. The body is very small (or invisible) and wicks stick out on both sides.\n\nWHAT IT LOOKS LIKE:\n• Small body (or just a horizontal line)\n• Long upper and lower wicks of similar length\n• Open ≈ Close\n\nWHAT IT MEANS:\nThis candle shows that buyers and sellers fought, but neither won. It signals indecision.\n\nWHAT TO DO:\n• Wait for the next candle after a Doji — enter in that direction\n• Never trade on a Doji alone; confirmation is essential\n• If a Doji appears after a strong trend, it may hint at a reversal\n\nWIN RATE EXPECTATION:\nA Doji alone is 50-55% accurate. With next-candle confirmation, it can reach 60-65%.` },
+    { id:'hammer', name:'Hammer', type:'bull', candles:[{o:52,h:54,l:38,c:53}], desc:`A Hammer is a bullish reversal candle at the end of a downtrend. Small body at top, long lower wick.\n\nWHAT IT MEANS:\nSellers pushed price down but buyers pulled it back up. Sellers losing power.\n\nWHAT TO DO:\n• If next candle is green, place a CALL (UP)\n• Stop loss below Hammer's low\n\nWIN RATE EXPECTATION:\nAt the end of a downtrend: 65-70%.` },
+    { id:'inv-hammer', name:'Inv. Hammer', type:'bull', candles:[{o:48,h:62,l:46,c:49}], desc:`An Inverted Hammer is a bullish reversal candle at the end of a downtrend. Long upper wick, small body at bottom.\n\nWHAT TO DO:\n• If next candle is green, place a CALL\n• Don't trade without confirmation\n\nWIN RATE EXPECTATION:\n60-65% with confirmation. 50-55% alone.` },
+    { id:'shooting-star', name:'Shooting Star', type:'bear', candles:[{o:52,h:66,l:51,c:51}], desc:`A Shooting Star is a bearish reversal candle at the end of an uptrend. Long upper wick, small body at bottom.\n\nWHAT TO DO:\n• If next candle is red, place a PUT (DOWN)\n• Stop loss above the high\n\nWIN RATE EXPECTATION:\n65-70% with confirmation.` },
+    { id:'hang-man', name:'Hanging Man', type:'bear', candles:[{o:52,h:54,l:38,c:52}], desc:`A Hanging Man is a bearish reversal candle at the end of an uptrend. Same shape as a Hammer but different location.\n\nWHAT TO DO:\n• If next candle is red, place a PUT\n• Alert in uptrend\n\nWIN RATE EXPECTATION:\n55-60% with confirmation.` },
+    { id:'bull-engulf', name:'Bull Engulf', type:'bull', candles:[{o:52,h:53,l:48,c:49},{o:48,h:56,l:47,c:55}], desc:`A Bullish Engulfing is a two-candle reversal: red candle followed by a large green candle that fully covers it.\n\nWHAT TO DO:\n• Place a CALL when the pattern completes\n• Stop loss below 2nd candle's low\n\nWIN RATE EXPECTATION:\n65-72%.` },
+    { id:'bear-engulf', name:'Bear Engulf', type:'bear', candles:[{o:49,h:53,l:48,c:52},{o:53,h:54,l:47,c:48}], desc:`A Bearish Engulfing is a two-candle reversal: green candle followed by a large red candle that fully covers it.\n\nWHAT TO DO:\n• Place a PUT after the pattern\n• Stop loss above 2nd candle's high\n\nWIN RATE EXPECTATION:\n65-72%.` },
+    { id:'morning-star', name:'Morning Star', type:'bull', candles:[{o:55,h:56,l:51,c:52},{o:51,h:52,l:47,c:49},{o:50,h:56,l:49,c:55}], desc:`A Morning Star is a three-candle bullish reversal at the end of a downtrend.\n\nWHAT TO DO:\n• Place a CALL after Candle 3 completes\n\nWIN RATE EXPECTATION:\n70-75%.` },
+    { id:'evening-star', name:'Evening Star', type:'bear', candles:[{o:48,h:52,l:47,c:51},{o:52,h:55,l:51,c:53},{o:51,h:52,l:46,c:47}], desc:`An Evening Star is a three-candle bearish reversal at the end of an uptrend.\n\nWHAT TO DO:\n• Place a PUT after Candle 3 completes\n\nWIN RATE EXPECTATION:\n70-75%.` },
+    { id:'three-white', name:'3 White Soldiers', type:'bull', candles:[{o:44,h:48,l:43,c:47},{o:47,h:51,l:46,c:50},{o:50,h:54,l:49,c:53}], desc:`Three White Soldiers — three strong green candles in a row. Bullish continuation.\n\nWHAT TO DO:\n• Place a CALL after Candle 3\n\nWIN RATE EXPECTATION:\n70-75%.` },
+    { id:'three-black', name:'3 Black Crows', type:'bear', candles:[{o:55,h:56,l:51,c:52},{o:52,h:53,l:48,c:49},{o:49,h:50,l:45,c:46}], desc:`Three Black Crows — three strong red candles in a row. Bearish continuation.\n\nWHAT TO DO:\n• Place a PUT after Candle 3\n\nWIN RATE EXPECTATION:\n70-75%.` },
+    { id:'piercing', name:'Piercing Line', type:'bull', candles:[{o:55,h:56,l:50,c:51},{o:49,h:54,l:48,c:53}], desc:`A Piercing Line is a bullish reversal — a green candle closes above the midpoint of the previous red candle.\n\nWHAT TO DO:\n• Place a CALL after the pattern\n\nWIN RATE EXPECTATION:\n60-68%.` },
+    { id:'dark-cloud', name:'Dark Cloud', type:'bear', candles:[{o:48,h:53,l:47,c:52},{o:53,h:54,l:49,c:50}], desc:`Dark Cloud Cover is a bearish reversal — a red candle closes below the midpoint of the previous green candle.\n\nWHAT TO DO:\n• Place a PUT after the pattern\n\nWIN RATE EXPECTATION:\n60-68%.` },
+    { id:'spinning-top', name:'Spinning Top', type:'neutral', candles:[{o:50,h:57,l:43,c:50.5}], desc:`A Spinning Top is a neutral candle with a small body and roughly equal wicks on both sides. Market indecision.\n\nWHAT TO DO:\n• Wait for direction confirmation\n\nWIN RATE EXPECTATION:\n55-60% with confirmation.` },
+    { id:'marubozu', name:'Marubozu', type:'neutral', candles:[{o:42,h:56,l:42,c:56}], desc:`A Marubozu is a strong trend candle with no wicks — buyers or sellers in full control.\n\nWHAT TO DO:\n• Bullish Marubozu = CALL\n• Bearish Marubozu = PUT\n\nWIN RATE EXPECTATION:\n70-75% — best signal for trend continuation.` }
+];
+
+/* ============================================================
+   PATTERN CANVAS RENDERING
+   ============================================================ */
+function drawPatternOnCanvas(canvasEl, pattern, padding = 12) {
+    const c = canvasEl.getContext('2d');
+    const W = canvasEl.width;
+    const H = canvasEl.height;
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.clearRect(0, 0, W, H);
+    c.fillStyle = '#0d141e';
+    c.fillRect(0, 0, W, H);
+    const candles = pattern.candles;
+    const n = candles.length;
+    let minP = Infinity, maxP = -Infinity;
+    candles.forEach(cc => { if (cc.l < minP) minP = cc.l; if (cc.h > maxP) maxP = cc.h; });
+    const span = maxP - minP || 1;
+    minP -= span * 0.15;
+    maxP += span * 0.15;
+    const plotW = W - padding * 2;
+    const plotH = H - padding * 2;
+    const slotW = plotW / n;
+    const bodyW = Math.max(6, slotW * 0.55);
+    const yOf = p => padding + plotH - ((p - minP) / (maxP - minP)) * plotH;
+    const xOf = i => padding + i * slotW + slotW / 2;
+    c.strokeStyle = '#141e29';
+    c.lineWidth = 1;
+    for (let i = 1; i < 4; i++) {
+        const y = Math.round(padding + (plotH / 4) * i) + 0.5;
+        c.beginPath(); c.moveTo(padding, y); c.lineTo(padding + plotW, y); c.stroke();
+    }
+    candles.forEach((cc, i) => {
+        const x = xOf(i);
+        const up = cc.c >= cc.o;
+        const col = up ? '#00e676' : '#ff5252';
+        c.strokeStyle = col;
+        c.lineWidth = Math.max(1, W / 400);
+        c.beginPath();
+        c.moveTo(Math.round(x) + 0.5, yOf(cc.h));
+        c.lineTo(Math.round(x) + 0.5, yOf(cc.l));
+        c.stroke();
+        const yO = yOf(cc.o), yC = yOf(cc.c);
+        const top = Math.min(yO, yC);
+        const hgt = Math.max(Math.abs(yC - yO), 2);
+        c.fillStyle = col;
+        c.fillRect(x - bodyW / 2, top, bodyW, hgt);
+    });
+}
+function renderPatternGrid() {
+    const grid = document.getElementById('patternGrid');
+    grid.innerHTML = '';
+    PATTERNS.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'pattern-card';
+        const cvs = document.createElement('canvas');
+        cvs.width = 260;
+        cvs.height = 144;
+        card.appendChild(cvs);
+        const nameEl = document.createElement('div');
+        nameEl.className = 'p-name';
+        nameEl.textContent = p.name;
+        card.appendChild(nameEl);
+        const tagEl = document.createElement('div');
+        tagEl.className = 'p-tag ' + p.type;
+        tagEl.textContent = p.type === 'bull' ? '▲ BULLISH' : (p.type === 'bear' ? '▼ BEARISH' : '◆ NEUTRAL');
+        card.appendChild(tagEl);
+        card.addEventListener('click', () => openPatternDetail(p));
+        grid.appendChild(card);
+        requestAnimationFrame(() => drawPatternOnCanvas(cvs, p));
+    });
+}
+function openPatternDetail(p) {
+    document.getElementById('pDetailTitle').textContent = p.name;
+    document.getElementById('pBigName').textContent = p.name;
+    const tagEl = document.getElementById('pBigTag');
+    tagEl.textContent = p.type === 'bull' ? '▲ BULLISH SIGNAL' : (p.type === 'bear' ? '▼ BEARISH SIGNAL' : '◆ NEUTRAL / INDECISION');
+    tagEl.className = 'p-big-tag';
+    tagEl.style.color = p.type === 'bull' ? '#00e676' : (p.type === 'bear' ? '#ff5252' : '#ffb74d');
+    document.getElementById('pBigDesc').textContent = p.desc;
+    patternDetailModal.classList.add('show');
+    requestAnimationFrame(() => {
+        const bigCanvas = document.getElementById('bigPatternCanvas');
+        bigCanvas.width = 820;
+        bigCanvas.height = 360;
+        drawPatternOnCanvas(bigCanvas, p, 24);
+    });
+}
+
+/* ============================================================
+   ASSETS + CHART ENGINE
+   ============================================================ */
+const ASSETS = [
+    { id:'inr_usd', label:'INR / USD', flag:'🇮🇳🇺🇸', prdBase:8836626782n, seed:1, basePrice:100.00, vol:1.00 },
+    { id:'eur_usd', label:'EUR / USD', flag:'🇪🇺🇺🇸', prdBase:2194853761n, seed:2, basePrice:108.50, vol:1.15 },
+    { id:'gbp_usd', label:'GBP / USD', flag:'🇬🇧🇺🇸', prdBase:5471920368n, seed:3, basePrice:126.30, vol:0.90 },
+    { id:'usd_jpy', label:'USD / JPY', flag:'🇺🇸🇯🇵', prdBase:7028514396n, seed:4, basePrice: 92.70, vol:1.30 },
+    { id:'aud_usd', label:'AUD / USD', flag:'🇦🇺🇺🇸', prdBase:4219063758n, seed:5, basePrice: 78.40, vol:1.05 },
+];
+let activeAsset = ASSETS[0];
+const assetBar = document.getElementById('asset-bar');
+function buildAssetChips() {
+    assetBar.innerHTML = '';
+    ASSETS.forEach(a => {
+        const chip = document.createElement('div');
+        chip.className = 'asset-chip' + (a.id === activeAsset.id ? ' active' : '');
+        chip.dataset.asset = a.id;
+        chip.innerHTML = `<span>${a.flag}</span> ${a.label} (85%)`;
+        chip.addEventListener('click', () => setActiveAsset(a.id));
+        assetBar.appendChild(chip);
+    });
+}
+function refreshAssetChipActive() { assetBar.querySelectorAll('.asset-chip').forEach(el => el.classList.toggle('active', el.dataset.asset === activeAsset.id)); }
+buildAssetChips();
+
+const canvas = document.getElementById('tradingChart');
+const ctx = canvas.getContext('2d');
+const BASE_TIMESTAMP = 1700000000000;
+const PERIOD_MS = 30000;
+const LOCK_SECONDS = 10;
+const CONVERGE_START = 0.83;
+const BASE_VISIBLE = 18, MIN_VISIBLE = 8, MAX_VISIBLE = 42, EXTRA_HISTORY = 90;
+let visibleCandles = BASE_VISIBLE;
+let VW = 0, VH = 0, DPR = 1;
+let activeBet = null;
+let panPixels = 0, isDragging = false, dragStartX = 0, dragStartPan = 0, snapTimer = null, zoomIndicatorTimer = null;
+const pointers = new Map();
+let pinchStartDist = 0, pinchStartVisible = BASE_VISIBLE;
+
+function resizeCanvas() {
+    const rect = document.getElementById('chart-container').getBoundingClientRect();
+    VW = Math.max(1, rect.width); VH = Math.max(1, rect.height); DPR = window.devicePixelRatio || 1;
+    canvas.width = Math.round(VW * DPR); canvas.height = Math.round(VH * DPR);
+    canvas.style.width = VW + 'px'; canvas.style.height = VH + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
+
+function hash01(n) { let t = (n|0) + 0x6D2B79F5; t = Math.imul(t ^ (t>>>15), t|1); t ^= t + Math.imul(t ^ (t>>>7), t|61); return ((t ^ (t>>>14)) >>> 0) / 4294967296; }
+function smoothNoise(seed, x) { const i = Math.floor(x); const f = x - i; const a = hash01(seed*131 + i*7); const b = hash01(seed*131 + (i+1)*7); const u = f*f*(3-2*f); return a + (b-a)*u; }
+function getPeriodIndex(ts) { return Math.floor((ts - BASE_TIMESTAMP) / PERIOD_MS); }
+
+const candleStores = {};
+function initAssetStore(asset) {
+    if (candleStores[asset.id]) return candleStores[asset.id];
+    const startIdx = getPeriodIndex(Date.now()) - 400;
+    const store = { map:new Map(), buildIdx:startIdx, buildClose:asset.basePrice, buildMom:0 };
+    store.map.set(startIdx, { idx:startIdx, open:asset.basePrice, close:asset.basePrice, high:asset.basePrice, low:asset.basePrice, mom:0 });
+    candleStores[asset.id] = store;
+    return store;
+}
+
+function stepCandle(idx, prevClose, mom, asset) {
+    const s = asset.seed * 1009;
+    const r1 = hash01(idx*3  + 11 + s);
+    const r2 = hash01(idx*5  + 23 + s);
+    const r3 = hash01(idx*7  + 37 + s);
+    const r4 = hash01(idx*11 + 53 + s);
+    const r5 = hash01(idx*13 + 71 + s);
+    const r6 = hash01(idx*17 + 97 + s);
+    const r7 = hash01(idx*19 + 113 + s);
+    const r8 = hash01(idx*23 + 131 + s);
+    const regime = hash01(idx * 47 + s);
+    let sizeMult;
+    if      (regime < 0.18) sizeMult = 0.55;
+    else if (regime < 0.55) sizeMult = 1.15;
+    else if (regime < 0.85) sizeMult = 2.20;
+    else                    sizeMult = 3.60;
+    const vol = (0.55 + r5 * 0.85) * asset.vol * 6.5 * sizeMult;
+    let drift = mom * 0.04 + (r1 - 0.5) * vol * 2.2 + (asset.basePrice - prevClose) * 0.003;
+    const kick = r2;
+    if (kick > 0.62) { const dir = r6 > 0.5 ? 1 : -1; drift = drift * 0.35 + dir * vol * 1.5; }
+    else if (kick > 0.35) { drift += (r7 - 0.5) * vol * 1.4; }
+    else { drift += (r8 - 0.5) * vol * 0.7; }
+    const open  = prevClose;
+    const close = open + drift;
+    const hi = Math.max(open, close) + r3 * vol * 1.8;
+    const lo = Math.min(open, close) - r4 * vol * 1.8;
+    return { idx, open, close, high:hi, low:lo, mom:drift };
+}
+
+function getCandle(idx, asset) {
+    asset = asset || activeAsset;
+    const store = initAssetStore(asset);
+    let c = store.map.get(idx);
+    if (c) return c;
+    while (store.buildIdx < idx) {
+        const nIdx = store.buildIdx + 1;
+        const nc = stepCandle(nIdx, store.buildClose, store.buildMom, asset);
+        store.map.set(nIdx, nc);
+        store.buildClose = nc.close;
+        store.buildMom = nc.mom;
+        store.buildIdx = nIdx;
+        if (store.map.size > 1400) store.map.delete(store.map.keys().next().value);
+    }
+    return store.map.get(idx);
+}
+
+function decideOutcome(periodNum) {
+    const forced = forcedCache[periodNum];
+    if (forced === 'up' || forced === 'down') return forced;
+    const b = periodBets[periodNum];
+    if (!b) return null;
+    if (b.up === 0 && b.down === 0) return null;
+    if (Math.abs(b.up - b.down) < 0.001) return null;
+    return b.up > b.down ? 'down' : 'up';
+}
+
+const targetCache = {};
+function getTargetClose(candle, asset, progress) {
+    const periodNum = (asset.prdBase + BigInt(candle.idx)).toString();
+    if (targetCache[periodNum] !== undefined) return targetCache[periodNum];
+    if (progress < CONVERGE_START) return candle.close;
+    const outcome = decideOutcome(periodNum);
+    let target;
+    if (!outcome) target = candle.close;
+    else {
+        const open = candle.open;
+        const range = Math.max(Math.abs(candle.close - candle.open), 0.05);
+        const magFactor = 0.45 + hash01(candle.idx * 777 + asset.seed * 13) * 0.55;
+        const mag = range * magFactor;
+        target = outcome === 'up' ? open + mag : open - mag;
+    }
+    targetCache[periodNum] = target;
+    return target;
+}
+
+function naturalWander(candle, progress, seed) {
+    const open = candle.open;
+    const close = candle.close;
+    const range = Math.max(candle.high - candle.low, 0.0001);
+    const win = Math.sin(Math.PI * progress);
+    const s = candle.idx * 3 + seed * 17;
+    const w1 = smoothNoise(s,        progress * 5.0)  - 0.5;
+    const w2 = smoothNoise(s + 137,  progress * 10.0) - 0.5;
+    const w3 = smoothNoise(s + 271,  progress * 18.0) - 0.5;
+    const w4 = smoothNoise(s + 419,  progress * 28.0) - 0.5;
+    const offset = (w1 * 0.45 + w2 * 0.28 + w3 * 0.17 + w4 * 0.10) * range * 0.95 * win;
+    return open + (close - open) * progress + offset;
+}
+
+function getLiveCandle(candle, progress, asset) {
+    const open = candle.open;
+    const nat = naturalWander(candle, progress, asset.seed);
+    const natClamped = Math.min(candle.high, Math.max(candle.low, nat));
+    let p;
+    if (progress < CONVERGE_START) p = natClamped;
+    else {
+        const target = getTargetClose(candle, asset, progress);
+        const t = (progress - CONVERGE_START) / (1 - CONVERGE_START);
+        const blend = t * t * (3 - 2 * t);
+        p = natClamped * (1 - blend) + target * blend;
+    }
+    let hi = Math.max(open, p);
+    let lo = Math.min(open, p);
+    hi = Math.max(hi, open + (candle.high - open) * progress);
+    lo = Math.min(lo, open + (candle.low  - open) * progress);
+    return { open, close:p, high:hi, low:lo };
+}
+function getCurrentPrice() {
+    const now = Date.now();
+    const idx = getPeriodIndex(now);
+    const prog = ((now - BASE_TIMESTAMP) % PERIOD_MS) / PERIOD_MS;
+    return getLiveCandle(getCandle(idx, activeAsset), prog, activeAsset).close;
+}
+
+function roundRectPath(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+    ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+    ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+    ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
+    ctx.closePath();
+}
+function drawChart(currentIdx, progress) {
+    ctx.clearRect(0, 0, VW, VH);
+    ctx.fillStyle = '#0d141e'; ctx.fillRect(0, 0, VW, VH);
+    const padL = 8, padR = 86, padT = 66, padB = 16;
+    const plotW = Math.max(10, VW - padL - padR);
+    const plotH = Math.max(10, VH - padT - padB);
+    const slotW = plotW / visibleCandles;
+    const bodyW = Math.max(3, slotW * 0.62);
+    const maxPan = (EXTRA_HISTORY - 3) * slotW;
+    if (panPixels > maxPan) panPixels = maxPan;
+    if (panPixels < 0) panPixels = 0;
+    const totalSlots = Math.ceil(visibleCandles) + EXTRA_HISTORY + 4;
+    const startIdx = currentIdx - totalSlots + 1;
+    const list = [];
+    for (let i = startIdx; i <= currentIdx; i++) list.push(getCandle(i, activeAsset));
+    const lastC = list[list.length - 1];
+    const liveCandle = getLiveCandle(lastC, progress, activeAsset);
+    const xOf = (idx) => padL + plotW - slotW/2 + (idx - currentIdx) * slotW + panPixels;
+    let minP = Infinity, maxP = -Infinity;
+    for (let i = 0; i < list.length; i++) {
+        const x = xOf(list[i].idx);
+        if (x + slotW < padL || x - slotW > padL + plotW) continue;
+        const c = list[i];
+        if (c.low < minP) minP = c.low;
+        if (c.high > maxP) maxP = c.high;
+    }
+    const liveX = xOf(currentIdx);
+    if (liveX + slotW >= padL && liveX - slotW <= padL + plotW) {
+        if (liveCandle.low < minP) minP = liveCandle.low;
+        if (liveCandle.high > maxP) maxP = liveCandle.high;
+    }
+    if (!isFinite(minP)) { minP = activeAsset.basePrice - 5; maxP = activeAsset.basePrice + 5; }
+    let span = maxP - minP;
+    if (!isFinite(span) || span < 0.0001) span = 1;
+    minP -= span * 0.10; maxP += span * 0.10;
+    const yOf = p => padT + plotH - ((p - minP) / (maxP - minP)) * plotH;
+    ctx.strokeStyle = '#141e29'; ctx.lineWidth = 1;
+    for (let i = 0; i <= 5; i++) {
+        const y = Math.round(padT + (plotH/5)*i) + 0.5;
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
+    }
+    const gridCols = Math.max(6, Math.round(visibleCandles));
+    for (let i = 0; i <= gridCols; i++) {
+        const x = Math.round(padL + (plotW/gridCols)*i) + 0.5;
+        ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + plotH); ctx.stroke();
+    }
+    ctx.fillStyle = '#4d5c6b'; ctx.font = '10px Segoe UI, sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    for (let i = 0; i <= 5; i++) {
+        const y = padT + (plotH/5)*i;
+        const price = maxP - ((maxP - minP)/5)*i;
+        ctx.fillText(price.toFixed(3), padL + plotW + 7, y);
+    }
+    for (let i = 0; i < list.length; i++) {
+        const c = list[i];
+        const x = xOf(c.idx);
+        if (x + slotW < padL || x - slotW > padL + plotW) continue;
+        const isLive = (i === list.length - 1);
+        const dc = isLive ? liveCandle : c;
+        const up = dc.close >= dc.open;
+        const col = up ? '#00e676' : '#ff5252';
+        ctx.strokeStyle = col; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(Math.round(x) + 0.5, yOf(dc.high));
+        ctx.lineTo(Math.round(x) + 0.5, yOf(dc.low));
+        ctx.stroke();
+        const yO = yOf(dc.open), yC = yOf(dc.close);
+        const top = Math.min(yO, yC);
+        const hgt = Math.max(Math.abs(yC - yO), 1.5);
+        ctx.fillStyle = col;
+        ctx.fillRect(x - bodyW/2, top, bodyW, hgt);
+    }
+    if (liveX > padL - slotW && liveX < padL + plotW + slotW) {
+        const liveY = yOf(liveCandle.close);
+        const liveUp = liveCandle.close >= liveCandle.open;
+        const liveCol = liveUp ? '#00e676' : '#ff5252';
+        ctx.strokeStyle = liveUp ? 'rgba(0,230,118,0.45)' : 'rgba(255,82,82,0.45)';
+        ctx.lineWidth = 1; ctx.setLineDash([5,5]);
+        ctx.beginPath(); ctx.moveTo(padL, liveY); ctx.lineTo(padL + plotW, liveY); ctx.stroke();
+        ctx.setLineDash([]);
+        const badgeTxt = liveCandle.close.toFixed(3);
+        ctx.font = 'bold 11px Segoe UI, sans-serif';
+        const tw = ctx.measureText(badgeTxt).width;
+        const bw = Math.min(padR - 8, tw + 16);
+        const bh = 19;
+        const bx = padL + plotW + 4;
+        const by = liveY - bh/2;
+        ctx.fillStyle = liveCol;
+        roundRectPath(bx, by, bw, bh, 3);
+        ctx.fill();
+        ctx.fillStyle = liveUp ? '#052b18' : '#ffffff';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(badgeTxt, bx + bw/2, by + bh/2 + 0.5);
+    }
+}
+
+function setActiveAsset(id) {
+    if (activeBet) { showToast('Cannot switch while trade is active!', 'warning'); return; }
+    const a = ASSETS.find(x => x.id === id);
+    if (!a || a.id === activeAsset.id) return;
+    activeAsset = a;
+    panPixels = 0;
+    initAssetStore(activeAsset);
+    warmupAsset(activeAsset);
+    refreshAssetChipActive();
+    showToast(`Switched to ${a.label}`, 'success');
+}
+function warmupAsset(asset) {
+    const nowIdx = getPeriodIndex(Date.now());
+    for (let i = nowIdx - MAX_VISIBLE - EXTRA_HISTORY - 4; i <= nowIdx; i++) getCandle(i, asset);
+}
+
+const zoomIndicator = document.getElementById('zoom-indicator');
+function showZoomIndicator() {
+    const zf = BASE_VISIBLE / visibleCandles;
+    zoomIndicator.innerText = zf.toFixed(1) + '×';
+    zoomIndicator.classList.add('show');
+    if (zoomIndicatorTimer) clearTimeout(zoomIndicatorTimer);
+    zoomIndicatorTimer = setTimeout(() => zoomIndicator.classList.remove('show'), 900);
+}
+function applyZoom(n) {
+    n = Math.max(MIN_VISIBLE, Math.min(MAX_VISIBLE, n));
+    if (Math.abs(n - visibleCandles) < 0.01) return;
+    visibleCandles = n; showZoomIndicator();
+}
+
+canvas.addEventListener('pointerdown', (e) => {
+    pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+    try { canvas.setPointerCapture(e.pointerId); } catch(_) {}
+    if (pointers.size === 1) {
+        isDragging = true; dragStartX = e.clientX; dragStartPan = panPixels;
+        canvas.classList.add('dragging');
+        if (snapTimer) { clearTimeout(snapTimer); snapTimer = null; }
+    } else if (pointers.size === 2) {
+        isDragging = false; canvas.classList.remove('dragging');
+        const pts = [...pointers.values()];
+        pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        pinchStartVisible = visibleCandles;
+        if (snapTimer) { clearTimeout(snapTimer); snapTimer = null; }
+    }
+});
+canvas.addEventListener('pointermove', (e) => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+    if (pointers.size >= 2 && pinchStartDist > 0) {
+        const pts = [...pointers.values()];
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        if (dist < 5) return;
+        applyZoom(pinchStartVisible / (dist / pinchStartDist));
+    } else if (isDragging && pointers.size === 1) {
+        panPixels = dragStartPan + (e.clientX - dragStartX);
+    }
+});
+function handlePointerEnd(e) {
+    pointers.delete(e.pointerId);
+    try { canvas.releasePointerCapture(e.pointerId); } catch(_) {}
+    if (pointers.size < 2) pinchStartDist = 0;
+    if (pointers.size === 0) { isDragging = false; canvas.classList.remove('dragging'); scheduleSnapBack(); }
+}
+canvas.addEventListener('pointerup', handlePointerEnd);
+canvas.addEventListener('pointercancel', handlePointerEnd);
+canvas.addEventListener('pointerleave', (e) => { if (pointers.has(e.pointerId)) handlePointerEnd(e); });
+canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (e.shiftKey || e.ctrlKey) {
+        panPixels += (e.deltaX || 0) + (e.deltaY || 0) * 0.6;
+        if (snapTimer) { clearTimeout(snapTimer); snapTimer = null; }
+        scheduleSnapBack();
+    } else applyZoom(visibleCandles * (e.deltaY > 0 ? 1.10 : 0.90));
+}, { passive:false });
+let lastTap = 0;
+canvas.addEventListener('pointerup', () => {
+    const now = Date.now();
+    if (now - lastTap < 280) { applyZoom(BASE_VISIBLE); panPixels = 0; }
+    lastTap = now;
+});
+function scheduleSnapBack() {
+    if (snapTimer) clearTimeout(snapTimer);
+    snapTimer = setTimeout(() => {
+        const step = () => {
+            panPixels *= 0.85;
+            if (Math.abs(panPixels) < 1) { panPixels = 0; return; }
+            requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    }, 3500);
+}
+
+const btnUp = document.getElementById('btn-up');
+const btnDown = document.getElementById('btn-down');
+const upSub = document.getElementById('up-subtext');
+const downSub = document.getElementById('down-subtext');
+let lastHandledPeriod = getPeriodIndex(Date.now());
+
+function syncLoop() {
+    const now = Date.now();
+    const currentIdx = getPeriodIndex(now);
+    const prdNum = activeAsset.prdBase + BigInt(currentIdx);
+    const msInto = (now - BASE_TIMESTAMP) % PERIOD_MS;
+    const secsLeft = Math.max(1, Math.ceil((PERIOD_MS - msInto) / 1000));
+    const progress = msInto / PERIOD_MS;
+    document.getElementById('prd-display').innerText = prdNum.toString();
+    document.getElementById('timer-display').innerText = '00:' + (secsLeft < 10 ? '0' : '') + secsLeft;
+    if (lastHandledPeriod !== currentIdx) {
+        if (activeBet) evaluateTrade(lastHandledPeriod);
+        lastHandledPeriod = currentIdx;
+    }
+    const locked = secsLeft <= LOCK_SECONDS;
+    if (activeBet) {
+        btnUp.disabled = true; btnDown.disabled = true;
+        upSub.innerText = 'Trade Running'; downSub.innerText = 'Trade Running';
+    } else if (locked) {
+        btnUp.disabled = true; btnDown.disabled = true;
+        upSub.innerText = 'Betting Locked'; downSub.innerText = 'Betting Locked';
+    } else {
+        btnUp.disabled = false; btnDown.disabled = false;
+        upSub.innerText = '+85% Return'; downSub.innerText = '+85% Return';
+    }
+    drawChart(currentIdx, progress);
+    requestAnimationFrame(syncLoop);
+}
+
+function placeBet(direction) {
+    if (activeBet) { showToast('A trade is already active!', 'warning'); return; }
+    const betAmt = parseFloat(document.getElementById('trade-amount').value);
+    if (isNaN(betAmt) || betAmt <= 0) { showToast('Enter a valid amount!', 'error'); return; }
+    if ((userData.wallet || 0) < betAmt) { showToast('Insufficient balance!', 'error'); return; }
+    const now = Date.now();
+    const currentIdx = getPeriodIndex(now);
+    const periodNum = (activeAsset.prdBase + BigInt(currentIdx)).toString();
+    const entryPrice = getCurrentPrice();
+    userData.wallet -= betAmt;
+    syncUserLocal();
+    recordBet(periodNum, direction, betAmt);
+    activeBet = {
+        direction, entryPrice, amount: betAmt,
+        periodIdx: currentIdx, periodNum,
+        asset: activeAsset, assetLabel: activeAsset.label
+    };
+    showToast(`Bet Placed: ${direction.toUpperCase()} ₹${formatCurrency(betAmt)}`, 'success');
+}
+btnUp.addEventListener('click', () => placeBet('up'));
+btnDown.addEventListener('click', () => placeBet('down'));
+
+function evaluateTrade(settledIdx) {
+    if (!activeBet) return;
+    const finalCandle = getCandle(settledIdx, activeBet.asset);
+    const periodNum = (activeBet.asset.prdBase + BigInt(settledIdx)).toString();
+    const outcome = decideOutcome(periodNum);
+    let finalPrice = finalCandle.close;
+    if (outcome) {
+        const open = finalCandle.open;
+        const range = Math.max(Math.abs(finalCandle.close - open), 0.05);
+        const magFactor = 0.45 + hash01(finalCandle.idx * 777 + activeBet.asset.seed * 13) * 0.55;
+        const mag = range * magFactor;
+        finalPrice = outcome === 'up' ? open + mag : open - mag;
+    }
+    let won = false;
+    if (activeBet.direction === 'up'   && finalPrice > activeBet.entryPrice) won = true;
+    if (activeBet.direction === 'down' && finalPrice < activeBet.entryPrice) won = true;
+    if (won) {
+        const payout = activeBet.amount * 1.85;
+        const profit = payout - activeBet.amount;
+        userData.wallet += payout;
+        syncUserLocal();
+        showToast(`Won: +₹${formatCurrency(profit)}`, 'success');
+        addTx(userData.uid, {
+            type:'trade_win', amount: profit,
+            note: `${activeBet.assetLabel} • Bet ₹${formatCurrency(activeBet.amount)}`,
+            walletAfter: userData.wallet
+        });
+    } else {
+        showToast(`Lost: -₹${formatCurrency(activeBet.amount)}`, 'error');
+        addTx(userData.uid, {
+            type:'trade_loss', amount: -activeBet.amount,
+            note: `${activeBet.assetLabel} • Bet ₹${formatCurrency(activeBet.amount)}`,
+            walletAfter: userData.wallet
+        });
+    }
+    activeBet = null;
+}
+
+/* BOOT */
+resizeCanvas();
+ASSETS.forEach(a => { initAssetStore(a); warmupAsset(a); });
+requestAnimationFrame(syncLoop);
+// Failsafe — hide loader after 5s no matter what
+setTimeout(() => { if (window.hideLoading) window.hideLoading(); }, 5000);
+</script>
+
+<!-- ============================================================
+     FIREBASE MODULE — Customer Service Chat (LOBBY side)
+     ------------------------------------------------------------
+     Removed orderByChild('ts') — default Firebase rules don't
+     have an index on 'ts', so ordered query silently failed.
+     Now reads whole messages node and sorts client-side.
+     ============================================================ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAr-uCBGJd9qL2k99DJEfpiftJy5RXDfvY",
+    authDomain: "recording-884bb.firebaseapp.com",
+    databaseURL: "https://recording-884bb-default-rtdb.firebaseio.com",
+    projectId: "recording-884bb",
+    storageBucket: "recording-884bb.firebasestorage.app",
+    messagingSenderId: "761583827852",
+    appId: "1:761583827852:web:64efb0c82bc66ed1c034a9"
+};
+const csApp = initializeApp(firebaseConfig, 'cs-lobby-app');
+const csDb = getDatabase(csApp);
+
+const csModal = document.getElementById('csModal');
+const csMessagesEl = document.getElementById('csMessages');
+const csInput = document.getElementById('csInput');
+const csSendBtn = document.getElementById('csSendBtn');
+
+function getActiveUid() {
+    try {
+        const a = JSON.parse(localStorage.getItem('activeUser') || 'null');
+        if (a && a.uid) return a.uid;
+    } catch(e) {}
+    return 'GUEST';
+}
+
+let unsub = null;
+let currentUid = null;
+
+function esc(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function bubbleHtml(m) {
+    const isMine = m.sender === 'user';
+    const cls = isMine ? 'cs-msg-out' : 'cs-msg-in';
+    const t = new Date(m.ts || Date.now()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    return `<div class="cs-msg ${cls}">
+        <div class="cs-bubble">${esc(m.text)}</div>
+        <div class="cs-time">${t}</div>
+    </div>`;
+}
+function renderMessages(arr) {
+    if (!arr.length) {
+        csMessagesEl.innerHTML = '<div class="cs-empty">Say hi to our support team 👋</div>';
+        return;
+    }
+    csMessagesEl.innerHTML = arr.map(bubbleHtml).join('');
+    csMessagesEl.scrollTop = csMessagesEl.scrollHeight;
+}
+
+function subscribe() {
+    const uid = getActiveUid();
+    currentUid = uid;
+    if (unsub) { unsub(); unsub = null; }
+    const msgsRef = ref(csDb, `customer_service/${uid}/messages`);
+    unsub = onValue(msgsRef, snap => {
+        const arr = [];
+        snap.forEach(ch => {
+            const v = ch.val();
+            if (v) arr.push(v);
+        });
+        arr.sort((a,b) => (a.ts || 0) - (b.ts || 0));
+        renderMessages(arr);
+    }, err => {
+        console.error('[CS] read error:', err);
+    });
+}
+
+async function sendMessage() {
+    const text = csInput.value.trim();
+    if (!text) return;
+    const uid = currentUid || getActiveUid();
+    csInput.value = '';
+    try {
+        await push(ref(csDb, `customer_service/${uid}/messages`), {
+            sender: 'user',
+            text: text,
+            ts: Date.now()
+        });
+    } catch(e) {
+        console.error(e);
+        showToast('Failed to send message', 'error');
+    }
+}
+
+csSendBtn.addEventListener('click', sendMessage);
+csInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+document.getElementById('cs-btn').addEventListener('click', () => {
+    csModal.classList.add('show');
+    document.getElementById('drawer-left').classList.remove('active');
+    document.getElementById('backdrop').classList.remove('active');
+    subscribe();
+    setTimeout(() => csInput.focus(), 100);
+});
+document.getElementById('csClose').addEventListener('click', () => {
+    csModal.classList.remove('show');
+    if (unsub) { unsub(); unsub = null; }
+});
+csModal.addEventListener('click', (e) => {
+    if (e.target === csModal) {
+        csModal.classList.remove('show');
+        if (unsub) { unsub(); unsub = null; }
+    }
+});
+</script>
+
+<!-- ============================================================
+     FIREBASE MODULE — USER DATA, WALLET, TX, FORCE, BETS
+     ------------------------------------------------------------
+     Loads real user from Firebase `users/{phone}`:
+       • UID, firstName, lastName, wallet
+     Live listeners on:
+       • users/{phone}    — wallet/name changes (admin updates)
+       • forcedDirections — candle force overrides
+       • periodBets       — bet volumes per period
+     Push actions:
+       • Save user (trade win/loss)
+       • Add transaction
+       • Record bet
+     ============================================================ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, get, set, update, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAr-uCBGJd9qL2k99DJEfpiftJy5RXDfvY",
+    authDomain: "recording-884bb.firebaseapp.com",
+    databaseURL: "https://recording-884bb-default-rtdb.firebaseio.com",
+    projectId: "recording-884bb",
+    storageBucket: "recording-884bb.firebasestorage.app",
+    messagingSenderId: "761583827852",
+    appId: "1:761583827852:web:64efb0c82bc66ed1c034a9"
+};
+const userApp = initializeApp(firebaseConfig, 'vertex-user-app');
+const db = getDatabase(userApp);
+
+let currentPhone = null;
+let userUnsub = null;
+
+/* ============================================================
+   1. LOAD USER FROM FIREBASE
+   ============================================================ */
+async function loadUserFromFirebase() {
+    try {
+        const active = JSON.parse(localStorage.getItem('activeUser') || 'null');
+        if (!active || !active.phone) {
+            window.location.replace('index.html');
+            return;
+        }
+        currentPhone = active.phone;
+
+        const snap = await get(ref(db, 'users/' + currentPhone));
+        if (snap.exists()) {
+            const fb = snap.val();
+            window.updateUserData({
+                uid: fb.uid,
+                wallet: fb.wallet || 0,
+                firstName: fb.firstName || '',
+                lastName: fb.lastName || '',
+                phone: fb.phone,
+                registrationDate: fb.registrationDate,
+                referralBonusClaimed: fb.referralBonusClaimed || false
+            });
+        } else {
+            // User record missing in Firebase → back to login
+            localStorage.removeItem('activeUser');
+            window.location.replace('index.html');
+        }
+    } catch(e) {
+        console.error('[User] load error:', e);
+        if (window.hideLoading) window.hideLoading();
+    }
+}
+loadUserFromFirebase();
+
+/* ============================================================
+   2. LIVE LISTENER — wallet / name changes
+   ============================================================ */
+function attachUserListener() {
+    if (!currentPhone) return;
+    if (userUnsub) { userUnsub(); userUnsub = null; }
+    userUnsub = onValue(ref(db, 'users/' + currentPhone), (snap) => {
+        if (!snap.exists()) return;
+        const fb = snap.val();
+        const cur = window.getUserData();
+        if (!cur) return;
+        const walletChanged = Math.abs((cur.wallet || 0) - (fb.wallet || 0)) > 0.001;
+        const nameChanged = (cur.firstName !== fb.firstName) || (cur.lastName !== fb.lastName);
+        const uidChanged = cur.uid !== fb.uid;
+        if (walletChanged || nameChanged || uidChanged) {
+            window.updateUserData({
+                uid: fb.uid,
+                wallet: fb.wallet || 0,
+                firstName: fb.firstName || '',
+                lastName: fb.lastName || ''
+            });
+            if (walletChanged && Math.abs((cur.wallet || 0) - (fb.wallet || 0)) > 1) {
+                window.showToast('Balance updated', 'success');
+            }
+        }
+    });
+}
+loadUserFromFirebase().then(() => {
+    if (currentPhone) attachUserListener();
+    else {
+        setTimeout(() => {
+            const active = JSON.parse(localStorage.getItem('activeUser') || 'null');
+            if (active && active.phone) { currentPhone = active.phone; attachUserListener(); }
+        }, 500);
+    }
+});
+
+/* ============================================================
+   3. SAVE USER (from trades)
+   ============================================================ */
+window.addEventListener('vertex:save-user', async (e) => {
+    try {
+        const d = e.detail;
+        if (!d || !d.phone) return;
+        await update(ref(db, 'users/' + d.phone), {
+            wallet: d.wallet,
+            firstName: d.firstName,
+            lastName: d.lastName
+        });
+    } catch(err) { console.error('[User] save error:', err); }
+});
+
+/* ============================================================
+   4. FORCED DIRECTIONS — live sync
+   ============================================================ */
+onValue(ref(db, 'forcedDirections'), (snap) => {
+    const data = snap.val() || {};
+    window.dispatchEvent(new CustomEvent('vertex:forced', { detail: data }));
+}, (err) => console.error('[Force] error:', err));
+
+/* ============================================================
+   5. PERIOD BETS — live sync + record
+   ============================================================ */
+onValue(ref(db, 'periodBets'), (snap) => {
+    const data = snap.val() || {};
+    window.dispatchEvent(new CustomEvent('vertex:bets', { detail: data }));
+}, (err) => console.error('[Bets] error:', err));
+
+window.addEventListener('vertex:record-bet', async (e) => {
+    try {
+        const { periodNum, direction, amount } = e.detail;
+        const betRef = ref(db, `periodBets/${periodNum}`);
+        const cur = await get(betRef);
+        const curr = cur.val() || { up:0, down:0 };
+        if (direction === 'up') curr.up = (curr.up || 0) + amount;
+        else curr.down = (curr.down || 0) + amount;
+        await set(betRef, curr);
+    } catch(err) { console.error('[Bet] save error:', err); }
+});
+
+/* ============================================================
+   6. TRANSACTIONS — load & add
+   ============================================================ */
+async function loadUserTx() {
+    try {
+        const cur = window.getUserData();
+        if (!cur || !cur.uid) return;
+        const snap = await get(ref(db, 'transactions/' + cur.uid));
+        const data = snap.val() || {};
+        const list = Object.values(data).sort((a,b) => (b.date || 0) - (a.date || 0));
+        window.renderTxList(list);
+    } catch(err) {
+        console.error('[Tx] load error:', err);
+        window.renderTxList([]);
+    }
+}
+window.addEventListener('vertex:load-tx', loadUserTx);
+
+window.addEventListener('vertex:add-tx', async (e) => {
+    try {
+        const cur = window.getUserData();
+        if (!cur || !cur.uid) return;
+        const tx = { ...e.detail, date: Date.now() };
+        await push(ref(db, 'transactions/' + cur.uid), tx);
+    } catch(err) { console.error('[Tx] add error:', err); }
+});
+</script>
+</body>
+</html>

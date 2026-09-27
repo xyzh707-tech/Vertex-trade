@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VERTEX | Admin Panel</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
+body { background:#0d141e; color:#fff; min-height:100vh; padding:15px; }
+.wrap { max-width:1100px; margin:0 auto; }
+header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid #233142; gap:10px; flex-wrap:wrap; }
+header h1 { font-size:22px; color:#00e676; }
+header .header-right { display:flex; align-items:center; gap:10px; }
+#clock { font-size:12px; color:#8a9ba8; background:#17212d; padding:6px 12px; border-radius:6px; }
+#refreshUsersBtn { background:#17212d; border:1px solid #233142; color:#00e676; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold; margin:0; width:auto; }
+#refreshUsersBtn:hover { background:#202c3a; }
+
+.grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:15px; }
+.card { background:#131b26; border:1px solid #233142; border-radius:10px; padding:18px; }
+.card h2 { font-size:15px; color:#00e676; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #233142; display:flex; align-items:center; gap:8px; }
+.card h2 svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; }
+label { display:block; font-size:11px; color:#8a9ba8; margin-top:10px; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px; }
+input, select { width:100%; background:#17212d; border:1px solid #233142; color:#fff; padding:10px; border-radius:6px; font-size:14px; outline:none; }
+input:focus, select:focus { border-color:#00e676; }
+button { margin-top:14px; width:100%; background:#00e676; color:#000; border:none; padding:11px; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer; }
+button:hover { background:#00c864; }
+button:active { transform:scale(0.98); }
+.hint { font-size:12px; color:#8a9ba8; background:#17212d; padding:8px 10px; border-radius:6px; margin-bottom:5px; }
+.hint strong { color:#fff; }
+.hint button { display:inline-block; width:auto; margin:0 0 0 8px; padding:3px 8px; font-size:11px; }
+.forcedList { margin-top:12px; max-height:180px; overflow-y:auto; }
+.forced-item { display:flex; align-items:center; gap:8px; background:#17212d; padding:8px 10px; border-radius:6px; margin-bottom:6px; font-size:12px; }
+.forced-item span:first-child { flex:1; font-family:monospace; }
+.forced-item .dir.up { color:#00e676; font-weight:bold; }
+.forced-item .dir.down { color:#ff5252; font-weight:bold; }
+.forced-item button { width:auto; margin:0; padding:3px 8px; background:#233142; color:#fff; font-size:11px; }
+.list { max-height:340px; overflow-y:auto; }
+.user-row, .tx-row { display:flex; justify-content:space-between; align-items:center; background:#17212d; padding:10px 12px; border-radius:6px; margin-bottom:6px; gap:10px; }
+.user-row .uid, .tx-row .tx-type { font-size:12px; font-weight:bold; color:#fff; font-family:'Courier New', monospace; }
+.user-row .uname, .tx-row .tx-meta { font-size:10px; color:#8a9ba8; margin-top:2px; }
+.user-row .bal { font-size:14px; font-weight:bold; color:#00e676; }
+.tx-row .tx-amt.pos { color:#00e676; font-weight:bold; }
+.tx-row .tx-amt.neg { color:#ff5252; font-weight:bold; }
+#updateStatus { margin-top:10px; font-size:12px; min-height:16px; }
+#updateStatus.ok { color:#00e676; }
+#updateStatus.error { color:#ff5252; }
+
+/* error banner */
+.err-banner {
+    display: none;
+    padding: 12px 14px;
+    background: rgba(255,82,82,0.1);
+    border: 1px solid rgba(255,82,82,0.4);
+    border-radius: 8px;
+    color: #ff8a8a;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 14px;
+    grid-column: 1 / -1;
+}
+.err-banner.show { display: block; }
+.err-banner strong { color: #fff; }
+.err-banner code {
+    background: rgba(0,0,0,0.4);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: #ffd97a;
+}
+
+/* user preview */
+.user-preview {
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: rgba(0,230,118,0.06);
+    border: 1px solid rgba(0,230,118,0.25);
+    border-radius: 8px;
+    font-size: 12px;
+    display: none;
+}
+.user-preview.show { display: block; }
+.user-preview .row { display:flex; justify-content:space-between; padding:3px 0; gap:10px; }
+.user-preview .row .k { color:#8a9ba8; flex-shrink:0; }
+.user-preview .row .v { color:#fff; font-weight:bold; word-break:break-all; text-align:right; }
+.user-preview .err { color:#ff5252; text-align:center; padding:6px 0; }
+
+/* CS panel */
+.cs-card { grid-column: 1 / -1; }
+.cs-admin-wrap { display:grid; grid-template-columns: 240px 1fr; gap:12px; height:460px; }
+@media(max-width:640px){ .cs-admin-wrap{grid-template-columns:1fr; height:auto;} .cs-admin-chat{height:400px;} }
+.cs-user-list { background:#0d141e; border:1px solid #233142; border-radius:8px; overflow-y:auto; }
+.cs-user-item { padding:10px 12px; border-bottom:1px solid #1c2836; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; transition:background 0.15s; }
+.cs-user-item:hover { background:#17212d; }
+.cs-user-item.active { background:#17212d; box-shadow:inset 3px 0 0 #00e676; }
+.cs-user-item .cs-user-info { flex:1; min-width:0; }
+.cs-user-item .cs-uid { font-size:11px; font-weight:bold; color:#fff; font-family:monospace; }
+.cs-user-item .cs-last { font-size:10px; color:#8a9ba8; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cs-user-item .cs-badge { background:#ff5252; color:#fff; font-size:9px; padding:2px 6px; border-radius:8px; font-weight:bold; flex-shrink:0; }
+.cs-admin-chat { display:flex; flex-direction:column; background:#0d141e; border:1px solid #233142; border-radius:8px; overflow:hidden; }
+.cs-admin-chat-head { padding:10px 14px; border-bottom:1px solid #233142; font-size:13px; font-weight:bold; background:#17212d; color:#fff; }
+.cs-admin-messages { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:6px; }
+.cs-admin-input-bar { padding:10px; border-top:1px solid #233142; display:flex; gap:8px; background:#17212d; }
+.cs-admin-input-bar input { flex:1; background:#0d141e; border:1px solid #233142; color:#fff; padding:9px 12px; border-radius:18px; font-size:12px; outline:none; }
+.cs-admin-input-bar input:focus { border-color:#00e676; }
+.cs-admin-input-bar button { width:auto; margin:0; padding:0 18px; border-radius:18px; font-size:12px; }
+.cs-admin-input-bar button:disabled { background:#334155; color:#64748b; cursor:not-allowed; }
+.cs-msg { display:flex; flex-direction:column; max-width:78%; margin-bottom:2px; }
+.cs-msg-out { align-self:flex-end; align-items:flex-end; }
+.cs-msg-in { align-self:flex-start; align-items:flex-start; }
+.cs-bubble { padding:9px 12px; border-radius:14px; font-size:13px; line-height:1.45; word-wrap:break-word; word-break:break-word; }
+.cs-msg-out .cs-bubble { background:#005c4b; color:#fff; border-bottom-right-radius:4px; }
+.cs-msg-in .cs-bubble { background:#202c3a; color:#fff; border-bottom-left-radius:4px; }
+.cs-time { font-size:10px; color:#4d5c6b; margin-top:3px; padding:0 4px; }
+.cs-empty { color:#4d5c6b; text-align:center; padding:30px 10px; font-size:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <h1>⚙️ VERTEX Admin</h1>
+        <div class="header-right">
+            <span id="userCount" style="font-size:12px;color:#8a9ba8;">Users: —</span>
+            <button id="refreshUsersBtn">↻ Refresh</button>
+            <span id="clock">Loading…</span>
+        </div>
+    </header>
+
+    <div class="grid">
+
+        <!-- ERROR BANNER -->
+        <div class="err-banner" id="errBanner"></div>
+
+        <!-- BALANCE UPDATE -->
+        <div class="card">
+            <h2>💵 Balance Update</h2>
+            <label>User UID</label>
+            <input id="uidInput" placeholder="e.g. UID123456" oninput="lookupUid(this.value)">
+            <div class="user-preview" id="userPreview"></div>
+
+            <label>Amount (₹)</label>
+            <input id="amountInput" type="number" placeholder="100" min="1" step="1">
+
+            <label>Transaction Type</label>
+            <select id="noteSelect">
+                <option value="deposit">💰 Deposit</option>
+                <option value="bonus">🎁 Bonus</option>
+                <option value="adjustment">⚙ Adjustment</option>
+                <option value="withdrawal">📤 Withdrawal</option>
+                <option value="penalty">⚠ Penalty</option>
+            </select>
+
+            <label>Custom Note (optional)</label>
+            <input id="customNote" placeholder="e.g. Welcome bonus">
+
+            <button id="updateBtn">Apply Update</button>
+            <div id="updateStatus"></div>
+        </div>
+
+        <!-- FORCE DIRECTION -->
+        <div class="card">
+            <h2>🎯 Force Candle Direction</h2>
+            <div class="hint">
+                Current period: <strong id="currentPrd">—</strong>
+                <button id="fillCurrent">Use this</button>
+            </div>
+            <label>Period Number</label>
+            <input id="periodInput" placeholder="e.g. 8836626782">
+            <label>Direction</label>
+            <select id="dirSelect">
+                <option value="up">▲ UP (Green)</option>
+                <option value="down">▼ DOWN (Red)</option>
+            </select>
+            <button id="forceBtn">Apply Force</button>
+            <div class="forcedList" id="forcedList"></div>
+        </div>
+
+        <!-- USERS -->
+        <div class="card">
+            <h2>👥 Users (Firebase)</h2>
+            <div id="usersList" class="list"></div>
+        </div>
+
+        <!-- TRANSACTIONS -->
+        <div class="card">
+            <h2>📋 Recent Transactions</h2>
+            <div id="txList" class="list"></div>
+        </div>
+
+        <!-- CS CHAT -->
+        <div class="card cs-card">
+            <h2>
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Customer Service Chat
+            </h2>
+            <div class="cs-admin-wrap">
+                <div class="cs-user-list" id="csUserList">
+                    <div class="cs-empty">Loading…</div>
+                </div>
+                <div class="cs-admin-chat">
+                    <div class="cs-admin-chat-head" id="csAdminChatHead">Select a user to chat</div>
+                    <div class="cs-admin-messages" id="csAdminMessages">
+                        <div class="cs-empty">No conversation selected</div>
+                    </div>
+                    <div class="cs-admin-input-bar">
+                        <input type="text" id="csAdminInput" placeholder="Type your reply…" disabled>
+                        <button id="csAdminSend" disabled>Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     CLASSIC SCRIPT
+     ============================================================ -->
+<script>
+const BASE_PRD = 8836626782n;
+const BASE_TIMESTAMP = 1700000000000;
+const PERIOD_MS = 30000;
+
+function tickClock() {
+    const now = Date.now();
+    const idx = Math.floor((now - BASE_TIMESTAMP) / PERIOD_MS);
+    const prd = (BASE_PRD + BigInt(idx)).toString();
+    document.getElementById('currentPrd').textContent = prd;
+    const msInto = (now - BASE_TIMESTAMP) % PERIOD_MS;
+    const secsLeft = Math.max(0, Math.ceil((PERIOD_MS - msInto) / 1000));
+    document.getElementById('clock').textContent = `Period ${prd} • ${secsLeft}s left`;
+}
+setInterval(tickClock, 500);
+tickClock();
+
+document.getElementById('fillCurrent').onclick = () => {
+    document.getElementById('periodInput').value = document.getElementById('currentPrd').textContent;
+};
+
+function showStatus(msg, type) {
+    const el = document.getElementById('updateStatus');
+    el.textContent = msg; el.className = type;
+    setTimeout(() => { el.textContent = ''; el.className = ''; }, 3000);
+}
+window.showStatus = showStatus;
+
+function showError(msg) {
+    const el = document.getElementById('errBanner');
+    el.innerHTML = msg;
+    el.classList.add('show');
+}
+window.showError = showError;
+
+function hideError() {
+    document.getElementById('errBanner').classList.remove('show');
+}
+window.hideError = hideError;
+
+/* UID index — populated by Firebase module */
+window.uidIndex = {};
+
+window.lookupUid = function(uid) {
+    uid = (uid || '').trim().toUpperCase();
+    const box = document.getElementById('userPreview');
+    if (!uid) { box.classList.remove('show'); return; }
+
+    const found = window.uidIndex[uid];
+    if (!found) {
+        box.classList.add('show');
+        const count = Object.keys(window.uidIndex).length;
+        box.innerHTML = '<div class="err">No user found with UID: ' + uid +
+            (count === 0 ? '<br><span style="color:#8a9ba8;font-size:11px;">(Users list is empty — check Firebase rules below)</span>' : '') +
+            '</div>';
+        return;
+    }
+    const u = found.user;
+    box.classList.add('show');
+    box.innerHTML = `
+        <div class="row"><span class="k">Name</span><span class="v">${((u.firstName||'')+' '+(u.lastName||'')).trim() || 'User'}</span></div>
+        <div class="row"><span class="k">Phone</span><span class="v">${u.phone || '—'}</span></div>
+        <div class="row"><span class="k">UID</span><span class="v">${u.uid || '—'}</span></div>
+        <div class="row"><span class="k">Password</span><span class="v">${u.password || '—'}</span></div>
+        <div class="row"><span class="k">Balance</span><span class="v">₹${(u.wallet||0).toFixed(2)}</span></div>
+        <div class="row"><span class="k">Registered</span><span class="v">${u.registrationDate || '—'}</span></div>
+    `;
+};
+
+document.getElementById('updateBtn').onclick = () => {
+    window.dispatchEvent(new CustomEvent('admin:update-balance'));
+};
+document.getElementById('forceBtn').onclick = () => {
+    window.dispatchEvent(new CustomEvent('admin:force-direction'));
+};
+document.getElementById('refreshUsersBtn').onclick = () => {
+    window.dispatchEvent(new CustomEvent('admin:refresh-users'));
+};
+</script>
+
+<!-- ============================================================
+     FIREBASE MODULE
+     ============================================================ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, get, set, update, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAr-uCBGJd9qL2k99DJEfpiftJy5RXDfvY",
+    authDomain: "recording-884bb.firebaseapp.com",
+    databaseURL: "https://recording-884bb-default-rtdb.firebaseio.com",
+    projectId: "recording-884bb",
+    storageBucket: "recording-884bb.firebasestorage.app",
+    messagingSenderId: "761583827852",
+    appId: "1:761583827852:web:64efb0c82bc66ed1c034a9"
+};
+const app = initializeApp(firebaseConfig, 'vertex-admin-app');
+const db = getDatabase(app);
+
+console.log('[Admin] Firebase initialized');
+
+/* ============================================================
+   USERS — live listener
+   ============================================================ */
+let usersByPhone = {};
+let uidIndex = {};
+
+function renderUsers() {
+    const el = document.getElementById('usersList');
+    const phones = Object.keys(usersByPhone);
+    document.getElementById('userCount').textContent = 'Users: ' + phones.length;
+
+    if (!phones.length) {
+        el.innerHTML = '<div style="color:#8a9ba8;font-size:12px;text-align:center;padding:8px;">No users yet</div>';
+        return;
+    }
+    phones.sort((a,b) => (usersByPhone[a].uid || '').localeCompare(usersByPhone[b].uid || ''));
+    el.innerHTML = phones.map(phone => {
+        const u = usersByPhone[phone];
+        const name = ((u.firstName||'') + ' ' + (u.lastName||'')).trim() || 'User';
+        return `<div class="user-row">
+            <div>
+                <div class="uid">${u.uid || '—'}</div>
+                <div class="uname">${name} • ${u.phone || phone}</div>
+            </div>
+            <div class="bal">₹${(u.wallet||0).toFixed(2)}</div>
+        </div>`;
+    }).join('');
+}
+
+function buildUidIndex(data) {
+    uidIndex = {};
+    Object.keys(data).forEach(phone => {
+        const u = data[phone];
+        if (u && u.uid) {
+            uidIndex[String(u.uid).toUpperCase()] = { phone, user: u };
+        }
+    });
+    window.uidIndex = uidIndex;
+    console.log('[Admin] Users loaded:', Object.keys(data).length, 'uidIndex:', Object.keys(uidIndex).length);
+}
+
+function attachUsersListener() {
+    onValue(ref(db, 'users'), (snap) => {
+        console.log('[Admin] users snapshot received');
+        usersByPhone = snap.val() || {};
+        buildUidIndex(usersByPhone);
+        renderUsers();
+        hideError();
+        const val = document.getElementById('uidInput').value;
+        if (val) window.lookupUid(val);
+    }, (err) => {
+        console.error('[Admin] users read FAILED:', err);
+        showError(
+            '<strong>⚠ Cannot read users from Firebase</strong><br>' +
+            'Error: <code>' + (err.message || err.code || 'unknown') + '</code><br><br>' +
+            'Firebase Realtime Database rules ki wajah se read block ho raha hai.<br>' +
+            'Fix: Firebase Console → Realtime Database → Rules me ye daal:<br>' +
+            '<code>{ "rules": { ".read": true, ".write": true } }</code><br>' +
+            'Publish karke page refresh kar.'
+        );
+        document.getElementById('userCount').textContent = 'Users: (blocked)';
+        document.getElementById('usersList').innerHTML =
+            '<div style="color:#ff8a8a;font-size:12px;text-align:center;padding:8px;">Firebase read blocked — check rules</div>';
+    });
+}
+attachUsersListener();
+
+/* manual refresh */
+window.addEventListener('admin:refresh-users', async () => {
+    try {
+        const snap = await get(ref(db, 'users'));
+        usersByPhone = snap.val() || {};
+        buildUidIndex(usersByPhone);
+        renderUsers();
+        hideError();
+        window.showStatus('✓ Users refreshed', 'ok');
+        console.log('[Admin] Manual refresh done:', Object.keys(usersByPhone).length);
+    } catch (err) {
+        console.error('[Admin] manual refresh failed:', err);
+        showError('<strong>Refresh failed:</strong> ' + (err.message || err.code));
+    }
+});
+
+/* ============================================================
+   BALANCE UPDATE
+   ============================================================ */
+window.addEventListener('admin:update-balance', async () => {
+    const uid = document.getElementById('uidInput').value.trim().toUpperCase();
+    const amt = parseFloat(document.getElementById('amountInput').value);
+    const type = document.getElementById('noteSelect').value;
+    const custom = document.getElementById('customNote').value.trim();
+
+    if (!uid) return window.showStatus('Enter a User UID', 'error');
+    if (!amt || amt <= 0) return window.showStatus('Enter a valid amount', 'error');
+
+    const found = uidIndex[uid];
+    if (!found) return window.showStatus('User not found: ' + uid, 'error');
+
+    const phone = found.phone;
+    const u = found.user;
+    const isDebit = (type === 'penalty' || type === 'withdrawal');
+    const delta = isDebit ? -amt : amt;
+    const newBal = Math.max(0, (u.wallet || 0) + delta);
+    const note = custom || defaultNote(type);
+
+    try {
+        await update(ref(db, 'users/' + phone), { wallet: newBal });
+        await push(ref(db, 'transactions/' + u.uid), {
+            type, amount: delta, note, date: Date.now(), walletAfter: newBal
+        });
+        window.showStatus(`✓ ${typeLabel(type)} ₹${amt} → ${uid}`, 'ok');
+        document.getElementById('amountInput').value = '';
+        document.getElementById('customNote').value = '';
+    } catch(e) {
+        console.error(e);
+        window.showStatus('Failed: ' + e.message, 'error');
+    }
+});
+
+function defaultNote(t) {
+    return {
+        deposit:'Amount deposited', bonus:'Bonus credited',
+        adjustment:'Balance adjusted', withdrawal:'Amount withdrawn',
+        penalty:'Penalty applied'
+    }[t] || '';
+}
+function typeLabel(t) {
+    return {
+        deposit:'Deposit', bonus:'Bonus', adjustment:'Adjustment',
+        withdrawal:'Withdrawal', penalty:'Penalty'
+    }[t] || t;
+}
+
+/* ============================================================
+   FORCE DIRECTION
+   ============================================================ */
+window.addEventListener('admin:force-direction', async () => {
+    const period = document.getElementById('periodInput').value.trim();
+    const dir = document.getElementById('dirSelect').value;
+    if (!period) return alert('Enter a period number');
+    if (!/^\d+$/.test(period)) return alert('Period must be digits only');
+    try {
+        await set(ref(db, 'forcedDirections/' + period), dir);
+        document.getElementById('periodInput').value = '';
+    } catch(e) { alert('Failed: ' + e.message); }
+});
+
+let forcedList = {};
+onValue(ref(db, 'forcedDirections'), (snap) => {
+    forcedList = snap.val() || {};
+    renderForced();
+}, (err) => console.error('[Force] err:', err));
+
+function renderForced() {
+    const el = document.getElementById('forcedList');
+    const keys = Object.keys(forcedList).sort((a,b) => Number(a) - Number(b));
+    if (!keys.length) {
+        el.innerHTML = '<div style="color:#8a9ba8;font-size:12px;text-align:center;padding:8px;">No forced directions set</div>';
+        return;
+    }
+    el.innerHTML = keys.map(k => `
+        <div class="forced-item">
+            <span>${k}</span>
+            <span class="dir ${forcedList[k]}">${forcedList[k] === 'up' ? '▲ UP' : '▼ DOWN'}</span>
+            <button data-period="${k}" class="rmForce">✕</button>
+        </div>`).join('');
+    el.querySelectorAll('.rmForce').forEach(b => {
+        b.onclick = async () => {
+            await remove(ref(db, 'forcedDirections/' + b.dataset.period));
+        };
+    });
+}
+
+/* ============================================================
+   TRANSACTIONS
+   ============================================================ */
+let allTx = [];
+onValue(ref(db, 'transactions'), (snap) => {
+    const data = snap.val() || {};
+    const list = [];
+    Object.keys(data).forEach(uid => {
+        const uTx = data[uid] || {};
+        Object.keys(uTx).forEach(k => {
+            const t = uTx[k];
+            t.uid = uid;
+            t._key = k;
+            list.push(t);
+        });
+    });
+    list.sort((a,b) => (b.date||0) - (a.date||0));
+    allTx = list.slice(0, 40);
+    renderTxList();
+}, (err) => console.error('[Tx] err:', err));
+
+function renderTxList() {
+    const el = document.getElementById('txList');
+    if (!allTx.length) {
+        el.innerHTML = '<div style="color:#8a9ba8;font-size:12px;text-align:center;padding:8px;">No transactions yet</div>';
+        return;
+    }
+    el.innerHTML = allTx.map(t => {
+        const icons = {
+            deposit:'💰', bonus:'🎁', withdrawal:'📤', adjustment:'⚙️',
+            penalty:'⚠️', trade_win:'✅', trade_loss:'❌'
+        };
+        const pos = t.amount >= 0;
+        return `<div class="tx-row">
+            <div>
+                <div class="tx-type">${icons[t.type]||'•'} ${(t.type||'').replace('_',' ').toUpperCase()}</div>
+                <div class="tx-meta">UID ${t.uid} • ${new Date(t.date||Date.now()).toLocaleString()}</div>
+            </div>
+            <div class="tx-amt ${pos?'pos':'neg'}">${pos?'+':''}₹${Math.abs(t.amount).toFixed(2)}</div>
+        </div>`;
+    }).join('');
+}
+
+/* ============================================================
+   CS CHAT
+   ============================================================ */
+const csUserList = document.getElementById('csUserList');
+const csAdminMessages = document.getElementById('csAdminMessages');
+const csAdminChatHead = document.getElementById('csAdminChatHead');
+const csAdminInput = document.getElementById('csAdminInput');
+const csAdminSend = document.getElementById('csAdminSend');
+let currentChatUid = null;
+let unsubMessages = null;
+let latestPerUser = {};
+
+function esc(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function getLastRead(uid) { return parseInt(localStorage.getItem('cs_lastRead_'+uid) || '0', 10); }
+function setLastRead(uid) { localStorage.setItem('cs_lastRead_'+uid, Date.now().toString()); }
+function unreadCount(uid) {
+    const m = latestPerUser[uid];
+    if (!m || m.sender !== 'user') return 0;
+    return m.ts <= getLastRead(uid) ? 0 : 1;
+}
+function renderUserList() {
+    const uids = Object.keys(latestPerUser);
+    if (!uids.length) {
+        csUserList.innerHTML = '<div class="cs-empty">No customer messages yet</div>';
+        return;
+    }
+    uids.sort((a,b) => (latestPerUser[b].ts||0) - (latestPerUser[a].ts||0));
+    csUserList.innerHTML = uids.map(uid => {
+        const m = latestPerUser[uid] || {};
+        const preview = (m.sender === 'admin' ? 'You: ' : '') + (m.text || '');
+        const badge = unreadCount(uid) ? '<span class="cs-badge">●</span>' : '';
+        const active = (uid === currentChatUid) ? ' active' : '';
+        return `<div class="cs-user-item${active}" data-uid="${esc(uid)}">
+            <div class="cs-user-info">
+                <div class="cs-uid">${esc(uid)}</div>
+                <div class="cs-last">${esc(preview.substring(0,40))}</div>
+            </div>
+            ${badge}
+        </div>`;
+    }).join('');
+    csUserList.querySelectorAll('.cs-user-item').forEach(el => {
+        el.addEventListener('click', () => selectUser(el.dataset.uid));
+    });
+}
+function bubble(m) {
+    const mine = m.sender === 'admin';
+    const cls = mine ? 'cs-msg-out' : 'cs-msg-in';
+    const t = new Date(m.ts||Date.now()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    return `<div class="cs-msg ${cls}"><div class="cs-bubble">${esc(m.text)}</div><div class="cs-time">${t}</div></div>`;
+}
+function renderMessages(arr) {
+    if (!arr.length) { csAdminMessages.innerHTML = '<div class="cs-empty">No messages yet</div>'; return; }
+    csAdminMessages.innerHTML = arr.map(bubble).join('');
+    csAdminMessages.scrollTop = csAdminMessages.scrollHeight;
+}
+function selectUser(uid) {
+    if (!uid) return;
+    currentChatUid = uid;
+    setLastRead(uid);
+    renderUserList();
+    csAdminChatHead.textContent = `Chat with ${uid}`;
+    csAdminInput.disabled = false;
+    csAdminSend.disabled = false;
+    csAdminInput.focus();
+    if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+    unsubMessages = onValue(ref(db, `customer_service/${uid}/messages`), (snap) => {
+        const arr = [];
+        snap.forEach(ch => { const v = ch.val(); if (v) arr.push(v); });
+        arr.sort((a,b) => (a.ts||0) - (b.ts||0));
+        renderMessages(arr);
+    }, (err) => console.error('[CS] read error:', err));
+}
+async function sendReply() {
+    const t = csAdminInput.value.trim();
+    if (!t || !currentChatUid) return;
+    csAdminInput.value = '';
+    try {
+        await push(ref(db, `customer_service/${currentChatUid}/messages`), {
+            sender: 'admin', text: t, ts: Date.now()
+        });
+        setLastRead(currentChatUid);
+    } catch(e) { alert('Failed to send: ' + e.message); }
+}
+csAdminSend.addEventListener('click', sendReply);
+csAdminInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendReply(); });
+
+onValue(ref(db, 'customer_service'), (snap) => {
+    const data = snap.val() || {};
+    const latest = {};
+    Object.keys(data).forEach(uid => {
+        const msgs = data[uid] && data[uid].messages ? data[uid].messages : null;
+        if (!msgs) return;
+        let last = null;
+        Object.values(msgs).forEach(m => { if (!last || (m.ts||0) > (last.ts||0)) last = m; });
+        if (last) latest[uid] = last;
+    });
+    latestPerUser = latest;
+    renderUserList();
+}, (err) => console.error('[CS] list err:', err));
+</script>
+</body>
+</html>
