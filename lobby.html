@@ -40,6 +40,81 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
 .menu-item svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .menu-item .cs-icon-canvas { width:18px; height:18px; display:block; }
 .menu-item:active { background:#202c3a; border-color:#00e676; }
+
+/* ============ EVENT POSTERS ============ */
+.event-poster {
+    margin-top: 14px;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid rgba(0, 230, 118, 0.22);
+    background: linear-gradient(135deg, rgba(0,230,118,0.06), rgba(59,130,246,0.06));
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.event-poster:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 20px rgba(0, 230, 118, 0.18);
+    border-color: rgba(0, 230, 118, 0.45);
+}
+.event-poster img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 2 / 1;
+    object-fit: cover;
+    background: #0d141e;
+}
+.event-poster::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.55) 65%, rgba(0, 0, 0, 0.9) 100%);
+    pointer-events: none;
+}
+.event-poster .poster-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 12px 12px;
+    z-index: 2;
+    text-align: center;
+}
+.event-poster .poster-title {
+    font-size: 13px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.4px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+    line-height: 1.2;
+    margin-bottom: 8px;
+}
+.event-poster .poster-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #00e676 0%, #3b82f6 100%);
+    color: #041014;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    border-radius: 7px;
+    box-shadow: 0 5px 14px rgba(0, 230, 118, 0.3);
+    text-decoration: none;
+}
+.event-poster .poster-btn svg {
+    width: 11px;
+    height: 11px;
+    stroke: #041014;
+    fill: none;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 .backdrop { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:90; display:none; }
 .backdrop.active { display:block; }
 .chart-container { flex:1; position:relative; background:#0d141e; overflow:hidden; }
@@ -101,22 +176,6 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
 .learn-body .hl { color:#00e676; font-weight:600; }
 .learn-body .warn { color:#ff5252; font-weight:600; }
 .learn-body .tip-num { display:inline-block; background:rgba(0,230,118,0.12); color:#00e676; padding:1px 7px; border-radius:4px; font-weight:700; margin-right:6px; font-size:11px; }
-.pattern-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; padding:12px; }
-.pattern-card { background:#17212d; border:1px solid #233142; border-radius:10px; padding:8px; cursor:pointer; transition:all 0.2s; overflow:hidden; }
-.pattern-card:hover { border-color:#00e676; transform:translateY(-2px); }
-.pattern-card:active { transform:translateY(0); }
-.pattern-card canvas { width:100%; height:72px; display:block; border-radius:6px; background:#0d141e; }
-.pattern-card .p-name { font-size:11px; font-weight:700; color:#fff; margin-top:6px; text-align:center; }
-.pattern-card .p-tag { font-size:9px; text-align:center; margin-top:2px; letter-spacing:0.5px; text-transform:uppercase; font-weight:700; }
-.p-tag.bull { color:#00e676; }
-.p-tag.bear { color:#ff5252; }
-.p-tag.neutral { color:#ffb74d; }
-.pattern-detail-body { padding:14px 16px; overflow-y:auto; flex:1; }
-.pattern-detail-body canvas { width:100%; height:180px; display:block; border-radius:8px; background:#0d141e; border:1px solid #233142; }
-.pattern-detail-body .p-big-name { font-size:18px; font-weight:800; margin:14px 0 4px; color:#fff; }
-.pattern-detail-body .p-big-tag { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:14px; }
-.pattern-detail-body .p-big-desc { font-size:13px; line-height:1.75; color:#c2d1d9; white-space:pre-wrap; }
-.pattern-detail-body .p-big-desc strong { color:#00e676; }
 .cs-modal { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:400; display:none; align-items:center; justify-content:center; padding:12px; }
 .cs-modal.show { display:flex; }
 .cs-modal-content { width:100%; max-width:440px; height:88vh; max-height:680px; background:#131b26; border-radius:14px; border:1px solid #233142; display:flex; flex-direction:column; overflow:hidden; }
@@ -142,12 +201,116 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
 .cs-input-bar button { background:#00e676; color:#000; border:none; width:42px; height:42px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .cs-input-bar button:disabled { background:#334155; color:#64748b; cursor:not-allowed; }
 .cs-input-bar button svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+/* ============================================================
+   LOGOUT CONFIRM MODAL
+   ============================================================ */
+.logout-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.logout-overlay.show { display: flex; }
+
+.logout-card {
+    background: #131b26;
+    border: 1px solid #233142;
+    border-radius: 16px;
+    padding: 28px 22px 20px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    animation: logoutIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+@keyframes logoutIn {
+    from { opacity: 0; transform: translateY(24px) scale(0.94); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.logout-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: rgba(255, 82, 82, 0.1);
+    border: 1px solid rgba(255, 82, 82, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.logout-icon svg {
+    width: 26px;
+    height: 26px;
+    stroke: #ff5252;
+    fill: none;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.logout-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+    letter-spacing: -0.2px;
+}
+.logout-text {
+    font-size: 12.5px;
+    color: #8a9ba8;
+    line-height: 1.6;
+    margin-bottom: 22px;
+}
+.logout-text strong { color: #fff; font-weight: 700; }
+
+.logout-actions {
+    display: flex;
+    gap: 10px;
+}
+.logout-btn {
+    flex: 1;
+    border: none;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+.logout-btn-no {
+    background: transparent;
+    color: #8a9ba8;
+    border: 1px solid #233142;
+}
+.logout-btn-no:hover {
+    color: #fff;
+    border-color: #334155;
+    background: rgba(255,255,255,0.03);
+}
+.logout-btn-yes {
+    background: linear-gradient(135deg, #ff5252 0%, #c62828 100%);
+    color: #fff;
+}
+.logout-btn-yes:hover {
+    filter: brightness(1.08);
+}
+.logout-btn-yes:active { transform: scale(0.98); }
 </style>
 </head>
 <body>
 <div id="toast-container"></div>
 
-<!-- Loading overlay — hides once Firebase user is loaded -->
+<!-- Loading overlay -->
 <div id="loadingOverlay" style="position:fixed;inset:0;background:#0d141e;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;">
     <div style="width:44px;height:44px;border:3px solid rgba(0,230,118,0.2);border-top-color:#00e676;border-radius:50%;animation:spinLoad 0.8s linear infinite;"></div>
     <div style="font-size:12px;color:#8a9ba8;font-weight:600;letter-spacing:1.5px;">LOADING PROFILE…</div>
@@ -179,7 +342,7 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
         <canvas id="tradingChart"></canvas>
     </div>
     <div class="trade-control-panel">
-        <div class="input-group"><span class="input-label">Investment</span><input type="number" id="trade-amount" class="amount-input" value="50" min="10" step="10"></div>
+        <div class="input-group"><span class="input-label">Investment</span><input type="number" id="trade-amount" class="amount-input" value="50.00" min="10" step="10"></div>
         <button class="btn-trade up" id="btn-up">▲ CALL (UP)<span class="btn-subtext" id="up-subtext">+85% Return</span></button>
         <button class="btn-trade down" id="btn-down">▼ PUT (DOWN)<span class="btn-subtext" id="down-subtext">+85% Return</span></button>
     </div>
@@ -211,10 +374,32 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
                 </div><span>❯</span>
             </div>
         </div>
+
+        <div class="event-poster" id="eventPoster1">
+            <img src="image1.png" alt="Available Events" onerror="this.style.display='none'">
+            <div class="poster-overlay">
+                <div class="poster-title">Available Events</div>
+                <a href="index2.html" class="poster-btn">
+                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    Explore
+                </a>
+            </div>
+        </div>
+
+        <div class="event-poster" id="eventPoster2">
+            <img src="image2.png" alt="Special Offers" onerror="this.style.display='none'">
+            <div class="poster-overlay">
+                <div class="poster-title">Special Offers</div>
+                <a href="index2.html" class="poster-btn">
+                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    Explore
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="drawer-right" id="drawer-right">
-        <div style="font-weight:bold; margin-bottom:14px; font-size:15px; color:#fff;">📚 Learning Center</div>
+        <div style="font-weight:bold; margin-bottom:14px; font-size:15px; color:#fff;">Learning Center</div>
         <div class="menu-list">
             <div class="menu-item" id="learn-btn">
                 <div class="menu-left-content">
@@ -228,10 +413,10 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
                     <span>Trading Tips</span>
                 </div><span>❯</span>
             </div>
-            <div class="menu-item" id="patterns-btn">
+            <div class="menu-item" id="chart-learning-btn">
                 <div class="menu-left-content">
                     <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8"/><rect x="12" y="6" width="3" height="12"/><rect x="17" y="12" width="3" height="6"/></svg>
-                    <span>Chart Patterns (15)</span>
+                    <span>Chart Learning</span>
                 </div><span>❯</span>
             </div>
         </div>
@@ -329,7 +514,7 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
             <h3>8. The Path Forward</h3>
             <p>Spend your first 30 days on demo only. Note every trade. Learn the patterns that keep working. The Chart Patterns section has 15 classic patterns — study them; they will help in real life. But always remember: <strong>in trading, only practice, discipline, and risk management let you survive.</strong></p>
 
-            <p style="margin-top:20px; padding:12px; background:rgba(255,82,82,0.08); border-left:3px solid #ff5252; border-radius:6px; font-size:12px;"><strong>⚠ Disclaimer:</strong> This platform is an educational demo. Consult your financial advisor before using real money. 90% of retail traders lose money.</p>
+            <p style="margin-top:20px; padding:12px; background:rgba(255,82,82,0.08); border-left:3px solid #ff5252; border-radius:6px; font-size:12px;"><strong>Disclaimer:</strong> This platform is an educational demo. Consult your financial advisor before using real money. 90% of retail traders lose money.</p>
         </div>
     </div>
 </div>
@@ -400,28 +585,31 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
             <p><span class="tip-num">49</span>Trade only with your own money, never borrowed.</p>
             <p><span class="tip-num">50</span>Most importantly: <strong>surviving is the biggest profit of all</strong>.</p>
 
-            <p style="margin-top:20px; padding:12px; background:rgba(255,82,82,0.08); border-left:3px solid #ff5252; border-radius:6px; font-size:12px;"><strong>⚠ Remember:</strong> No tip is 100% guaranteed. This is general guidance only. Trade at your own risk.</p>
+            <p style="margin-top:20px; padding:12px; background:rgba(255,82,82,0.08); border-left:3px solid #ff5252; border-radius:6px; font-size:12px;"><strong>Remember:</strong> No tip is 100% guaranteed. This is general guidance only. Trade at your own risk.</p>
         </div>
     </div>
 </div>
 
-<div class="tx-modal" id="patternsModal">
-    <div class="tx-modal-content">
-        <div class="tx-modal-head"><span>Chart Patterns — 15 Classics</span><button class="tx-close" id="patternsClose">✕</button></div>
-        <div class="tx-modal-body" style="padding:0;">
-            <div class="pattern-grid" id="patternGrid"></div>
+<!-- ============================================================
+     LOGOUT CONFIRM MODAL
+     ============================================================ -->
+<div class="logout-overlay" id="logoutOverlay">
+    <div class="logout-card">
+        <div class="logout-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M17 16l4-4m0 0l-4-4m4 4H7"/>
+                <path d="M13 4v0a3 3 0 013 3v10a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7z"/>
+            </svg>
         </div>
-    </div>
-</div>
+        <div class="logout-title">Logout?</div>
+        <div class="logout-text">
+            Are you sure you want to logout from your account?<br>
+            You'll need to <strong>login again</strong> to continue trading.
+        </div>
 
-<div class="tx-modal" id="patternDetailModal">
-    <div class="tx-modal-content">
-        <div class="tx-modal-head"><span id="pDetailTitle">Pattern</span><button class="tx-close" id="pDetailClose">✕</button></div>
-        <div class="pattern-detail-body">
-            <canvas id="bigPatternCanvas" width="820" height="360"></canvas>
-            <div class="p-big-name" id="pBigName"></div>
-            <div class="p-big-tag" id="pBigTag"></div>
-            <div class="p-big-desc" id="pBigDesc"></div>
+        <div class="logout-actions">
+            <button class="logout-btn logout-btn-no" id="logoutNo">No</button>
+            <button class="logout-btn logout-btn-yes" id="logoutYes">Yes, Logout</button>
         </div>
     </div>
 </div>
@@ -442,19 +630,17 @@ window.showToast = showToast;
 function formatCurrency(a) { const p = parseFloat(a); return isNaN(p) ? '0.00' : p.toFixed(2); }
 
 /* ============================================================
-   STORAGE HELPERS (kept as offline cache/fallback)
+   STORAGE HELPERS
    ============================================================ */
 function getAllUsers() { try { return JSON.parse(localStorage.getItem('allUsers') || '{}'); } catch(e) { return {}; } }
 function saveAllUsers(u) { localStorage.setItem('allUsers', JSON.stringify(u)); }
 function getTx(uid) { try { return JSON.parse(localStorage.getItem('tx_' + uid) || '[]'); } catch(e) { return []; } }
 function saveTx(uid, list) { if (list.length > 500) list = list.slice(0, 500); localStorage.setItem('tx_' + uid, JSON.stringify(list)); }
 
-// addTx kept — writes locally AND dispatches Firebase event
 function addTx(uid, tx) {
     const l = getTx(uid);
     l.unshift({ ...tx, date: Date.now() });
     saveTx(uid, l);
-    // Mirror to Firebase
     window.dispatchEvent(new CustomEvent('vertex:add-tx', { detail: tx }));
 }
 window.addTx = addTx;
@@ -481,19 +667,23 @@ function recordBet(periodNum, direction, amount) {
     if (direction === 'up') periodBets[periodNum].up += amount;
     else periodBets[periodNum].down += amount;
     saveBets();
-    // Mirror to Firebase
     window.dispatchEvent(new CustomEvent('vertex:record-bet', { detail: { periodNum, direction, amount } }));
 }
 loadBets();
 setInterval(loadBets, 2000);
 window.addEventListener('storage', loadBets);
 
-// Firebase pushed events override local caches
-window.addEventListener('vertex:forced', (e) => { forcedCache = e.detail || {}; });
-window.addEventListener('vertex:bets',   (e) => { periodBets  = e.detail || {}; });
+window.addEventListener('vertex:forced', (e) => {
+    forcedCache = e.detail || {};
+    try { localStorage.setItem('forcedDirections', JSON.stringify(forcedCache)); } catch(_) {}
+});
+window.addEventListener('vertex:bets', (e) => {
+    periodBets = e.detail || {};
+    try { localStorage.setItem('periodBets', JSON.stringify(periodBets)); } catch(_) {}
+});
 
 /* ============================================================
-   USER DATA — Firebase-first, NO demo fallback
+   USER DATA
    ============================================================ */
 let userData = null;
 try {
@@ -501,14 +691,12 @@ try {
     if (stored) userData = JSON.parse(stored);
 } catch(e) {}
 
-// If no valid session → redirect to login (no demo user)
 if (!userData || !userData.uid || !userData.phone) {
     document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#8a9ba8;font-family:sans-serif;font-size:14px;text-align:center;padding:20px;">Session expired.<br>Redirecting to login…</div>';
     setTimeout(() => window.location.replace('index.html'), 300);
     throw new Error('Not logged in');
 }
 
-// Firebase module uses this to push fresh data into the UI
 window.updateUserData = function(fresh) {
     if (!fresh) return;
     Object.assign(userData, fresh);
@@ -523,7 +711,6 @@ window.hideLoading = function() {
     if (lo) lo.style.display = 'none';
 };
 
-// Initial display (will be overwritten by Firebase data)
 updateBalanceDisplay();
 
 function updateBalanceDisplay() {
@@ -537,7 +724,6 @@ function updateBalanceDisplay() {
     document.getElementById('drawer-username').innerText = name || '—';
 }
 
-// Save — updates localStorage, UI, and pushes to Firebase
 function syncUserLocal() {
     localStorage.setItem('activeUser', JSON.stringify(userData));
     updateBalanceDisplay();
@@ -551,13 +737,39 @@ function syncUserLocal() {
 }
 window.syncUserLocal = syncUserLocal;
 
+/* ============================================================
+   LOGOUT WITH CONFIRMATION MODAL
+   ============================================================ */
+const logoutOverlay = document.getElementById('logoutOverlay');
+
 document.getElementById('logout-btn').addEventListener('click', () => {
+    document.getElementById('drawer-left').classList.remove('active');
+    document.getElementById('backdrop').classList.remove('active');
+    logoutOverlay.classList.add('show');
+});
+
+document.getElementById('logoutNo').addEventListener('click', () => {
+    logoutOverlay.classList.remove('show');
+});
+
+document.getElementById('logoutYes').addEventListener('click', () => {
     localStorage.removeItem('activeUser');
-    window.location.href = 'index.html';
+    try { sessionStorage.removeItem('vertex_session_id'); } catch(e) {}
+    window.location.replace('index.html');
+});
+
+logoutOverlay.addEventListener('click', (e) => {
+    if (e.target === logoutOverlay) logoutOverlay.classList.remove('show');
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && logoutOverlay.classList.contains('show')) {
+        logoutOverlay.classList.remove('show');
+    }
 });
 
 /* ============================================================
-   TX ICONS
+   TX ICONS + RENDER
    ============================================================ */
 const TX_ICONS = {
     deposit: `<svg viewBox="0 0 24 24"><path d="M12 3v11"/><path d="M7.5 9.5L12 14l4.5-4.5"/><path d="M4 17v2.5h16V17"/></svg>`,
@@ -583,7 +795,6 @@ function txMeta(t) {
 const txModal = document.getElementById('txModal');
 const txModalBody = document.getElementById('txModalBody');
 
-// Local fallback renderer (used if Firebase hasn't replied yet)
 function renderTxModal() {
     const list = getTx(userData.uid);
     if (!list.length) { txModalBody.innerHTML = '<div class="tx-empty">No transactions yet</div>'; return; }
@@ -603,7 +814,6 @@ function renderTxModal() {
     }).join('');
 }
 
-// Firebase module calls this to render its own list
 window.renderTxList = function(list) {
     if (!list || !list.length) {
         txModalBody.innerHTML = '<div class="tx-empty">No transactions yet</div>';
@@ -637,7 +847,6 @@ document.getElementById('open-right-btn').addEventListener('click', () => { draw
 backdrop.addEventListener('click', () => { drawerLeft.classList.remove('active'); drawerRight.classList.remove('active'); backdrop.classList.remove('active'); });
 
 document.getElementById('history-btn').addEventListener('click', () => {
-    // Show loading state, then fetch from Firebase
     txModalBody.innerHTML = '<div class="tx-empty">Loading…</div>';
     txModal.classList.add('show');
     drawerLeft.classList.remove('active');
@@ -649,8 +858,6 @@ txModal.addEventListener('click', (e) => { if (e.target === txModal) txModal.cla
 
 const learnModal = document.getElementById('learnModal');
 const tipsModal = document.getElementById('tipsModal');
-const patternsModal = document.getElementById('patternsModal');
-const patternDetailModal = document.getElementById('patternDetailModal');
 
 document.getElementById('learn-btn').addEventListener('click', () => {
     learnModal.classList.add('show');
@@ -660,27 +867,26 @@ document.getElementById('tips-btn').addEventListener('click', () => {
     tipsModal.classList.add('show');
     drawerRight.classList.remove('active'); backdrop.classList.remove('active');
 });
-document.getElementById('patterns-btn').addEventListener('click', () => {
-    patternsModal.classList.add('show');
-    drawerRight.classList.remove('active'); backdrop.classList.remove('active');
-    renderPatternGrid();
+document.getElementById('chart-learning-btn').addEventListener('click', () => {
+    window.location.href = 'chart.html';
 });
 document.getElementById('learnClose').addEventListener('click', () => learnModal.classList.remove('show'));
 document.getElementById('tipsClose').addEventListener('click', () => tipsModal.classList.remove('show'));
-document.getElementById('patternsClose').addEventListener('click', () => patternsModal.classList.remove('show'));
-document.getElementById('pDetailClose').addEventListener('click', () => patternDetailModal.classList.remove('show'));
-[learnModal, tipsModal, patternsModal, patternDetailModal].forEach(m => {
+[learnModal, tipsModal].forEach(m => {
     m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); });
 });
 
-let currentOnline = Math.floor(Math.random() * 1000) + 3500;
-setInterval(() => {
-    currentOnline += Math.floor(Math.random() * 21) - 10;
-    document.getElementById('online-count').innerText = currentOnline.toLocaleString() + ' online';
-}, 3000);
+/* ============================================================
+   ONLINE COUNT — receives from Firebase module
+   ============================================================ */
+window.updateOnlineCount = function(count) {
+    const el = document.getElementById('online-count');
+    if (!el) return;
+    el.innerText = Number(count).toLocaleString() + ' online';
+};
 
 /* ============================================================
-   CS CANVAS ICON — sketch chat bubble
+   CS CANVAS ICON
    ============================================================ */
 function drawCsBubbleIcon(canvasEl, color) {
     if (!canvasEl) return;
@@ -725,114 +931,6 @@ document.querySelectorAll('.cs-icon-canvas').forEach(c => drawCsBubbleIcon(c, '#
 drawCsBubbleIcon(document.getElementById('csHeaderLogo'), '#00e676');
 
 /* ============================================================
-   CHART PATTERNS DATA — English
-   ============================================================ */
-const PATTERNS = [
-    { id:'doji', name:'Doji', type:'neutral', candles:[{o:50,h:56,l:44,c:50}], desc:`A Doji is a neutral candle where the open and close are almost at the same level. The body is very small (or invisible) and wicks stick out on both sides.\n\nWHAT IT LOOKS LIKE:\n• Small body (or just a horizontal line)\n• Long upper and lower wicks of similar length\n• Open ≈ Close\n\nWHAT IT MEANS:\nThis candle shows that buyers and sellers fought, but neither won. It signals indecision.\n\nWHAT TO DO:\n• Wait for the next candle after a Doji — enter in that direction\n• Never trade on a Doji alone; confirmation is essential\n• If a Doji appears after a strong trend, it may hint at a reversal\n\nWIN RATE EXPECTATION:\nA Doji alone is 50-55% accurate. With next-candle confirmation, it can reach 60-65%.` },
-    { id:'hammer', name:'Hammer', type:'bull', candles:[{o:52,h:54,l:38,c:53}], desc:`A Hammer is a bullish reversal candle at the end of a downtrend. Small body at top, long lower wick.\n\nWHAT IT MEANS:\nSellers pushed price down but buyers pulled it back up. Sellers losing power.\n\nWHAT TO DO:\n• If next candle is green, place a CALL (UP)\n• Stop loss below Hammer's low\n\nWIN RATE EXPECTATION:\nAt the end of a downtrend: 65-70%.` },
-    { id:'inv-hammer', name:'Inv. Hammer', type:'bull', candles:[{o:48,h:62,l:46,c:49}], desc:`An Inverted Hammer is a bullish reversal candle at the end of a downtrend. Long upper wick, small body at bottom.\n\nWHAT TO DO:\n• If next candle is green, place a CALL\n• Don't trade without confirmation\n\nWIN RATE EXPECTATION:\n60-65% with confirmation. 50-55% alone.` },
-    { id:'shooting-star', name:'Shooting Star', type:'bear', candles:[{o:52,h:66,l:51,c:51}], desc:`A Shooting Star is a bearish reversal candle at the end of an uptrend. Long upper wick, small body at bottom.\n\nWHAT TO DO:\n• If next candle is red, place a PUT (DOWN)\n• Stop loss above the high\n\nWIN RATE EXPECTATION:\n65-70% with confirmation.` },
-    { id:'hang-man', name:'Hanging Man', type:'bear', candles:[{o:52,h:54,l:38,c:52}], desc:`A Hanging Man is a bearish reversal candle at the end of an uptrend. Same shape as a Hammer but different location.\n\nWHAT TO DO:\n• If next candle is red, place a PUT\n• Alert in uptrend\n\nWIN RATE EXPECTATION:\n55-60% with confirmation.` },
-    { id:'bull-engulf', name:'Bull Engulf', type:'bull', candles:[{o:52,h:53,l:48,c:49},{o:48,h:56,l:47,c:55}], desc:`A Bullish Engulfing is a two-candle reversal: red candle followed by a large green candle that fully covers it.\n\nWHAT TO DO:\n• Place a CALL when the pattern completes\n• Stop loss below 2nd candle's low\n\nWIN RATE EXPECTATION:\n65-72%.` },
-    { id:'bear-engulf', name:'Bear Engulf', type:'bear', candles:[{o:49,h:53,l:48,c:52},{o:53,h:54,l:47,c:48}], desc:`A Bearish Engulfing is a two-candle reversal: green candle followed by a large red candle that fully covers it.\n\nWHAT TO DO:\n• Place a PUT after the pattern\n• Stop loss above 2nd candle's high\n\nWIN RATE EXPECTATION:\n65-72%.` },
-    { id:'morning-star', name:'Morning Star', type:'bull', candles:[{o:55,h:56,l:51,c:52},{o:51,h:52,l:47,c:49},{o:50,h:56,l:49,c:55}], desc:`A Morning Star is a three-candle bullish reversal at the end of a downtrend.\n\nWHAT TO DO:\n• Place a CALL after Candle 3 completes\n\nWIN RATE EXPECTATION:\n70-75%.` },
-    { id:'evening-star', name:'Evening Star', type:'bear', candles:[{o:48,h:52,l:47,c:51},{o:52,h:55,l:51,c:53},{o:51,h:52,l:46,c:47}], desc:`An Evening Star is a three-candle bearish reversal at the end of an uptrend.\n\nWHAT TO DO:\n• Place a PUT after Candle 3 completes\n\nWIN RATE EXPECTATION:\n70-75%.` },
-    { id:'three-white', name:'3 White Soldiers', type:'bull', candles:[{o:44,h:48,l:43,c:47},{o:47,h:51,l:46,c:50},{o:50,h:54,l:49,c:53}], desc:`Three White Soldiers — three strong green candles in a row. Bullish continuation.\n\nWHAT TO DO:\n• Place a CALL after Candle 3\n\nWIN RATE EXPECTATION:\n70-75%.` },
-    { id:'three-black', name:'3 Black Crows', type:'bear', candles:[{o:55,h:56,l:51,c:52},{o:52,h:53,l:48,c:49},{o:49,h:50,l:45,c:46}], desc:`Three Black Crows — three strong red candles in a row. Bearish continuation.\n\nWHAT TO DO:\n• Place a PUT after Candle 3\n\nWIN RATE EXPECTATION:\n70-75%.` },
-    { id:'piercing', name:'Piercing Line', type:'bull', candles:[{o:55,h:56,l:50,c:51},{o:49,h:54,l:48,c:53}], desc:`A Piercing Line is a bullish reversal — a green candle closes above the midpoint of the previous red candle.\n\nWHAT TO DO:\n• Place a CALL after the pattern\n\nWIN RATE EXPECTATION:\n60-68%.` },
-    { id:'dark-cloud', name:'Dark Cloud', type:'bear', candles:[{o:48,h:53,l:47,c:52},{o:53,h:54,l:49,c:50}], desc:`Dark Cloud Cover is a bearish reversal — a red candle closes below the midpoint of the previous green candle.\n\nWHAT TO DO:\n• Place a PUT after the pattern\n\nWIN RATE EXPECTATION:\n60-68%.` },
-    { id:'spinning-top', name:'Spinning Top', type:'neutral', candles:[{o:50,h:57,l:43,c:50.5}], desc:`A Spinning Top is a neutral candle with a small body and roughly equal wicks on both sides. Market indecision.\n\nWHAT TO DO:\n• Wait for direction confirmation\n\nWIN RATE EXPECTATION:\n55-60% with confirmation.` },
-    { id:'marubozu', name:'Marubozu', type:'neutral', candles:[{o:42,h:56,l:42,c:56}], desc:`A Marubozu is a strong trend candle with no wicks — buyers or sellers in full control.\n\nWHAT TO DO:\n• Bullish Marubozu = CALL\n• Bearish Marubozu = PUT\n\nWIN RATE EXPECTATION:\n70-75% — best signal for trend continuation.` }
-];
-
-/* ============================================================
-   PATTERN CANVAS RENDERING
-   ============================================================ */
-function drawPatternOnCanvas(canvasEl, pattern, padding = 12) {
-    const c = canvasEl.getContext('2d');
-    const W = canvasEl.width;
-    const H = canvasEl.height;
-    c.setTransform(1, 0, 0, 1, 0, 0);
-    c.clearRect(0, 0, W, H);
-    c.fillStyle = '#0d141e';
-    c.fillRect(0, 0, W, H);
-    const candles = pattern.candles;
-    const n = candles.length;
-    let minP = Infinity, maxP = -Infinity;
-    candles.forEach(cc => { if (cc.l < minP) minP = cc.l; if (cc.h > maxP) maxP = cc.h; });
-    const span = maxP - minP || 1;
-    minP -= span * 0.15;
-    maxP += span * 0.15;
-    const plotW = W - padding * 2;
-    const plotH = H - padding * 2;
-    const slotW = plotW / n;
-    const bodyW = Math.max(6, slotW * 0.55);
-    const yOf = p => padding + plotH - ((p - minP) / (maxP - minP)) * plotH;
-    const xOf = i => padding + i * slotW + slotW / 2;
-    c.strokeStyle = '#141e29';
-    c.lineWidth = 1;
-    for (let i = 1; i < 4; i++) {
-        const y = Math.round(padding + (plotH / 4) * i) + 0.5;
-        c.beginPath(); c.moveTo(padding, y); c.lineTo(padding + plotW, y); c.stroke();
-    }
-    candles.forEach((cc, i) => {
-        const x = xOf(i);
-        const up = cc.c >= cc.o;
-        const col = up ? '#00e676' : '#ff5252';
-        c.strokeStyle = col;
-        c.lineWidth = Math.max(1, W / 400);
-        c.beginPath();
-        c.moveTo(Math.round(x) + 0.5, yOf(cc.h));
-        c.lineTo(Math.round(x) + 0.5, yOf(cc.l));
-        c.stroke();
-        const yO = yOf(cc.o), yC = yOf(cc.c);
-        const top = Math.min(yO, yC);
-        const hgt = Math.max(Math.abs(yC - yO), 2);
-        c.fillStyle = col;
-        c.fillRect(x - bodyW / 2, top, bodyW, hgt);
-    });
-}
-function renderPatternGrid() {
-    const grid = document.getElementById('patternGrid');
-    grid.innerHTML = '';
-    PATTERNS.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'pattern-card';
-        const cvs = document.createElement('canvas');
-        cvs.width = 260;
-        cvs.height = 144;
-        card.appendChild(cvs);
-        const nameEl = document.createElement('div');
-        nameEl.className = 'p-name';
-        nameEl.textContent = p.name;
-        card.appendChild(nameEl);
-        const tagEl = document.createElement('div');
-        tagEl.className = 'p-tag ' + p.type;
-        tagEl.textContent = p.type === 'bull' ? '▲ BULLISH' : (p.type === 'bear' ? '▼ BEARISH' : '◆ NEUTRAL');
-        card.appendChild(tagEl);
-        card.addEventListener('click', () => openPatternDetail(p));
-        grid.appendChild(card);
-        requestAnimationFrame(() => drawPatternOnCanvas(cvs, p));
-    });
-}
-function openPatternDetail(p) {
-    document.getElementById('pDetailTitle').textContent = p.name;
-    document.getElementById('pBigName').textContent = p.name;
-    const tagEl = document.getElementById('pBigTag');
-    tagEl.textContent = p.type === 'bull' ? '▲ BULLISH SIGNAL' : (p.type === 'bear' ? '▼ BEARISH SIGNAL' : '◆ NEUTRAL / INDECISION');
-    tagEl.className = 'p-big-tag';
-    tagEl.style.color = p.type === 'bull' ? '#00e676' : (p.type === 'bear' ? '#ff5252' : '#ffb74d');
-    document.getElementById('pBigDesc').textContent = p.desc;
-    patternDetailModal.classList.add('show');
-    requestAnimationFrame(() => {
-        const bigCanvas = document.getElementById('bigPatternCanvas');
-        bigCanvas.width = 820;
-        bigCanvas.height = 360;
-        drawPatternOnCanvas(bigCanvas, p, 24);
-    });
-}
-
-/* ============================================================
    ASSETS + CHART ENGINE
    ============================================================ */
 const ASSETS = [
@@ -863,7 +961,10 @@ const ctx = canvas.getContext('2d');
 const BASE_TIMESTAMP = 1700000000000;
 const PERIOD_MS = 30000;
 const LOCK_SECONDS = 10;
-const CONVERGE_START = 0.83;
+
+const CONVERGE_SECONDS = 5;
+const CONVERGE_START = 1 - (CONVERGE_SECONDS * 1000 / PERIOD_MS);
+
 const BASE_VISIBLE = 18, MIN_VISIBLE = 8, MAX_VISIBLE = 42, EXTRA_HISTORY = 90;
 let visibleCandles = BASE_VISIBLE;
 let VW = 0, VH = 0, DPR = 1;
@@ -952,23 +1053,33 @@ function decideOutcome(periodNum) {
     return b.up > b.down ? 'down' : 'up';
 }
 
-const targetCache = {};
-function getTargetClose(candle, asset, progress) {
+function getForcedTarget(candle, asset) {
+    if (!candle || !asset) return null;
     const periodNum = (asset.prdBase + BigInt(candle.idx)).toString();
-    if (targetCache[periodNum] !== undefined) return targetCache[periodNum];
-    if (progress < CONVERGE_START) return candle.close;
     const outcome = decideOutcome(periodNum);
-    let target;
-    if (!outcome) target = candle.close;
-    else {
-        const open = candle.open;
-        const range = Math.max(Math.abs(candle.close - candle.open), 0.05);
-        const magFactor = 0.45 + hash01(candle.idx * 777 + asset.seed * 13) * 0.55;
-        const mag = range * magFactor;
-        target = outcome === 'up' ? open + mag : open - mag;
-    }
-    targetCache[periodNum] = target;
-    return target;
+    if (outcome !== 'up' && outcome !== 'down') return null;
+    const open = candle.open;
+    const range = Math.max(Math.abs(candle.close - open), 0.05);
+    const magFactor = 0.45 + hash01(candle.idx * 777 + asset.seed * 13) * 0.55;
+    const mag = range * magFactor;
+    return outcome === 'up' ? open + mag : open - mag;
+}
+
+function getTargetClose(candle, asset, progress) {
+    if (progress < CONVERGE_START) return candle.close;
+    const forced = getForcedTarget(candle, asset);
+    return forced !== null ? forced : candle.close;
+}
+
+function getDisplayCandle(c, asset) {
+    const forced = getForcedTarget(c, asset);
+    if (forced === null) return c;
+    return {
+        open: c.open,
+        close: forced,
+        high: Math.max(c.high, c.open, forced),
+        low: Math.min(c.low, c.open, forced)
+    };
 }
 
 function naturalWander(candle, progress, seed) {
@@ -990,11 +1101,12 @@ function getLiveCandle(candle, progress, asset) {
     const nat = naturalWander(candle, progress, asset.seed);
     const natClamped = Math.min(candle.high, Math.max(candle.low, nat));
     let p;
-    if (progress < CONVERGE_START) p = natClamped;
-    else {
+    if (progress < CONVERGE_START) {
+        p = natClamped;
+    } else {
         const target = getTargetClose(candle, asset, progress);
         const t = (progress - CONVERGE_START) / (1 - CONVERGE_START);
-        const blend = t * t * (3 - 2 * t);
+        const blend = t * t * t * (t * (t * 6 - 15) + 10);
         p = natClamped * (1 - blend) + target * blend;
     }
     let hi = Math.max(open, p);
@@ -1077,7 +1189,7 @@ function drawChart(currentIdx, progress) {
         const x = xOf(c.idx);
         if (x + slotW < padL || x - slotW > padL + plotW) continue;
         const isLive = (i === list.length - 1);
-        const dc = isLive ? liveCandle : c;
+        const dc = isLive ? liveCandle : getDisplayCandle(c, activeAsset);
         const up = dc.close >= dc.open;
         const col = up ? '#00e676' : '#ff5252';
         ctx.strokeStyle = col; ctx.lineWidth = 1;
@@ -1266,16 +1378,8 @@ btnDown.addEventListener('click', () => placeBet('down'));
 function evaluateTrade(settledIdx) {
     if (!activeBet) return;
     const finalCandle = getCandle(settledIdx, activeBet.asset);
-    const periodNum = (activeBet.asset.prdBase + BigInt(settledIdx)).toString();
-    const outcome = decideOutcome(periodNum);
-    let finalPrice = finalCandle.close;
-    if (outcome) {
-        const open = finalCandle.open;
-        const range = Math.max(Math.abs(finalCandle.close - open), 0.05);
-        const magFactor = 0.45 + hash01(finalCandle.idx * 777 + activeBet.asset.seed * 13) * 0.55;
-        const mag = range * magFactor;
-        finalPrice = outcome === 'up' ? open + mag : open - mag;
-    }
+    const forced = getForcedTarget(finalCandle, activeBet.asset);
+    const finalPrice = forced !== null ? forced : finalCandle.close;
     let won = false;
     if (activeBet.direction === 'up'   && finalPrice > activeBet.entryPrice) won = true;
     if (activeBet.direction === 'down' && finalPrice < activeBet.entryPrice) won = true;
@@ -1301,20 +1405,28 @@ function evaluateTrade(settledIdx) {
     activeBet = null;
 }
 
+/* AMOUNT INPUT — auto-format on blur/change */
+const amountInput = document.getElementById('trade-amount');
+function formatAmountInput() {
+    const v = parseFloat(amountInput.value);
+    if (isNaN(v) || v <= 0) {
+        amountInput.value = '0.00';
+    } else {
+        amountInput.value = v.toFixed(2);
+    }
+}
+amountInput.addEventListener('blur', formatAmountInput);
+amountInput.addEventListener('change', formatAmountInput);
+
 /* BOOT */
 resizeCanvas();
 ASSETS.forEach(a => { initAssetStore(a); warmupAsset(a); });
 requestAnimationFrame(syncLoop);
-// Failsafe — hide loader after 5s no matter what
 setTimeout(() => { if (window.hideLoading) window.hideLoading(); }, 5000);
 </script>
 
 <!-- ============================================================
-     FIREBASE MODULE — Customer Service Chat (LOBBY side)
-     ------------------------------------------------------------
-     Removed orderByChild('ts') — default Firebase rules don't
-     have an index on 'ts', so ordered query silently failed.
-     Now reads whole messages node and sorts client-side.
+     FIREBASE MODULE — Customer Service Chat
      ============================================================ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -1364,7 +1476,7 @@ function bubbleHtml(m) {
 }
 function renderMessages(arr) {
     if (!arr.length) {
-        csMessagesEl.innerHTML = '<div class="cs-empty">Say hi to our support team 👋</div>';
+        csMessagesEl.innerHTML = '<div class="cs-empty">Say hi to our support team</div>';
         return;
     }
     csMessagesEl.innerHTML = arr.map(bubbleHtml).join('');
@@ -1429,22 +1541,11 @@ csModal.addEventListener('click', (e) => {
 </script>
 
 <!-- ============================================================
-     FIREBASE MODULE — USER DATA, WALLET, TX, FORCE, BETS
-     ------------------------------------------------------------
-     Loads real user from Firebase `users/{phone}`:
-       • UID, firstName, lastName, wallet
-     Live listeners on:
-       • users/{phone}    — wallet/name changes (admin updates)
-       • forcedDirections — candle force overrides
-       • periodBets       — bet volumes per period
-     Push actions:
-       • Save user (trade win/loss)
-       • Add transaction
-       • Record bet
+     FIREBASE MODULE — USER DATA, WALLET, TX, FORCE, BETS, ONLINE COUNT
      ============================================================ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getDatabase, ref, get, set, update, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, get, set, update, push, onValue, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAr-uCBGJd9qL2k99DJEfpiftJy5RXDfvY",
@@ -1461,9 +1562,7 @@ const db = getDatabase(userApp);
 let currentPhone = null;
 let userUnsub = null;
 
-/* ============================================================
-   1. LOAD USER FROM FIREBASE
-   ============================================================ */
+/* 1. LOAD USER FROM FIREBASE */
 async function loadUserFromFirebase() {
     try {
         const active = JSON.parse(localStorage.getItem('activeUser') || 'null');
@@ -1486,7 +1585,6 @@ async function loadUserFromFirebase() {
                 referralBonusClaimed: fb.referralBonusClaimed || false
             });
         } else {
-            // User record missing in Firebase → back to login
             localStorage.removeItem('activeUser');
             window.location.replace('index.html');
         }
@@ -1497,9 +1595,7 @@ async function loadUserFromFirebase() {
 }
 loadUserFromFirebase();
 
-/* ============================================================
-   2. LIVE LISTENER — wallet / name changes
-   ============================================================ */
+/* 2. LIVE LISTENER */
 function attachUserListener() {
     if (!currentPhone) return;
     if (userUnsub) { userUnsub(); userUnsub = null; }
@@ -1534,9 +1630,7 @@ loadUserFromFirebase().then(() => {
     }
 });
 
-/* ============================================================
-   3. SAVE USER (from trades)
-   ============================================================ */
+/* 3. SAVE USER */
 window.addEventListener('vertex:save-user', async (e) => {
     try {
         const d = e.detail;
@@ -1549,17 +1643,13 @@ window.addEventListener('vertex:save-user', async (e) => {
     } catch(err) { console.error('[User] save error:', err); }
 });
 
-/* ============================================================
-   4. FORCED DIRECTIONS — live sync
-   ============================================================ */
+/* 4. FORCED DIRECTIONS */
 onValue(ref(db, 'forcedDirections'), (snap) => {
     const data = snap.val() || {};
     window.dispatchEvent(new CustomEvent('vertex:forced', { detail: data }));
 }, (err) => console.error('[Force] error:', err));
 
-/* ============================================================
-   5. PERIOD BETS — live sync + record
-   ============================================================ */
+/* 5. PERIOD BETS */
 onValue(ref(db, 'periodBets'), (snap) => {
     const data = snap.val() || {};
     window.dispatchEvent(new CustomEvent('vertex:bets', { detail: data }));
@@ -1577,9 +1667,7 @@ window.addEventListener('vertex:record-bet', async (e) => {
     } catch(err) { console.error('[Bet] save error:', err); }
 });
 
-/* ============================================================
-   6. TRANSACTIONS — load & add
-   ============================================================ */
+/* 6. TRANSACTIONS */
 async function loadUserTx() {
     try {
         const cur = window.getUserData();
@@ -1602,6 +1690,80 @@ window.addEventListener('vertex:add-tx', async (e) => {
         const tx = { ...e.detail, date: Date.now() };
         await push(ref(db, 'transactions/' + cur.uid), tx);
     } catch(err) { console.error('[Tx] add error:', err); }
+});
+
+/* ============================================================
+   7. ONLINE COUNT — Firebase-backed (admin override + auto fluctuate)
+   Admin path: /config/online_count
+   If value > 0 → show that everywhere (+ tiny fluctuation for life)
+   If value = 0 or missing → auto mode (4285 ± 15 every 3s, synced)
+   ============================================================ */
+const ONLINE_BASE = 4285;
+let adminOnlineValue = 0;
+
+function getAutoOnline() {
+    const bucket = Math.floor(Date.now() / 3000);
+    const r1 = Math.sin(bucket * 12.9898) * 43758.5453;
+    const r2 = Math.sin(bucket * 78.233) * 12345.6789;
+    const frac1 = r1 - Math.floor(r1);
+    const frac2 = r2 - Math.floor(r2);
+    const fluct = Math.round((frac1 - 0.5) * 30 + (frac2 - 0.5) * 5);
+    return ONLINE_BASE + fluct;
+}
+
+function applyOnline() {
+    let val;
+    if (adminOnlineValue > 0) {
+        // Admin value + tiny time-based fluctuation
+        const bucket = Math.floor(Date.now() / 3000);
+        const r = Math.sin(bucket * 45.123) * 5432.1234;
+        const frac = r - Math.floor(r);
+        const fluct = Math.round((frac - 0.5) * 8);
+        val = adminOnlineValue + fluct;
+    } else {
+        val = getAutoOnline();
+    }
+    if (typeof window.updateOnlineCount === 'function') {
+        window.updateOnlineCount(val);
+    }
+}
+applyOnline();
+setInterval(applyOnline, 3000);
+
+/* Listen for admin override */
+onValue(ref(db, 'config/online_count'), (snap) => {
+    const v = parseInt(snap.val(), 10);
+    if (!isNaN(v) && v > 0) {
+        adminOnlineValue = v;
+    } else {
+        adminOnlineValue = 0;
+    }
+    applyOnline();
+}, (err) => {
+    console.warn('[Online] config read error:', err);
+});
+
+/* Presence registration (kept for future use) */
+let sessionId = null;
+try {
+    sessionId = sessionStorage.getItem('vertex_session_id');
+    if (!sessionId) {
+        sessionId = 's_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now();
+        sessionStorage.setItem('vertex_session_id', sessionId);
+    }
+} catch(e) {
+    sessionId = 's_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now();
+}
+
+const presenceRef = ref(db, `online_users/${sessionId}`);
+const connectedRef = ref(db, '.info/connected');
+
+onValue(connectedRef, (snap) => {
+    if (snap.val() === true) {
+        set(presenceRef, { ts: serverTimestamp() }).then(() => {
+            onDisconnect(presenceRef).remove();
+        });
+    }
 });
 </script>
 </body>
