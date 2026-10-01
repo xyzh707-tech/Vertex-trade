@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VERTEX | Chart Learning</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Inter','Segoe UI',Tahoma,Geneva,Verdana,sans-serif; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; }
+body { background:#060911; color:#fff; min-height:100vh; padding-bottom:30px; }
+
+/* ============================================================
+   HEADER WITH SKETCH LOGO
+   ============================================================ */
+.header {
+    height:70px;
+    background:rgba(23,33,45,0.95);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 14px;
+    border-bottom:1px solid #233142;
+    position:sticky;
+    top:0;
+    z-index:100;
+}
+.header-left {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:60px;
+}
+.back-btn {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:38px;
+    height:38px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid #233142;
+    color:#8a9ba8;
+    text-decoration:none;
+    transition:all 0.2s;
+    flex-shrink:0;
+}
+.back-btn:hover { color:#00e676; border-color:rgba(0,230,118,0.35); background:rgba(0,230,118,0.06); }
+.back-btn svg { width:18px; height:18px; }
+
+.header-center {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex:1;
+    justify-content:center;
+}
+.header-logo {
+    width:40px;
+    height:40px;
+    display:block;
+    flex-shrink:0;
+    filter:drop-shadow(0 0 8px rgba(0,230,118,0.25));
+}
+.header-titles {
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    line-height:1.15;
+}
+.header-title-main {
+    font-size:14px;
+    font-weight:800;
+    letter-spacing:0.4px;
+    color:#ffffff;
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+.header-title-main .chart-icon {
+    width:15px;
+    height:15px;
+    stroke:#00e676;
+    fill:none;
+    stroke-width:2.2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+.header-title-sub {
+    font-size:9.5px;
+    font-weight:700;
+    letter-spacing:1.6px;
+    color:#00e676;
+    text-transform:uppercase;
+    margin-top:2px;
+}
+
+.header-right {
+    min-width:60px;
+    text-align:right;
+    font-size:10.5px;
+    font-weight:700;
+    color:#8a9ba8;
+    letter-spacing:0.3px;
+}
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+.search-bar-wrap {
+    padding:14px 14px 6px;
+    max-width:1200px;
+    margin:0 auto;
+}
+.search-bar {
+    width:100%;
+    background:#131b26;
+    border:1px solid #233142;
+    color:#fff;
+    padding:13px 16px;
+    border-radius:11px;
+    font-size:13px;
+    outline:none;
+    transition:border-color 0.2s, background 0.2s;
+    font-family:inherit;
+}
+.search-bar:focus { border-color:rgba(0,230,118,0.5); background:#17212d; }
+.search-bar::placeholder { color:#4d5c6b; }
+
+/* ============================================================
+   FILTER CHIPS
+   ============================================================ */
+.filter-chips {
+    display:flex;
+    gap:6px;
+    padding:12px 14px 4px;
+    max-width:1200px;
+    margin:0 auto;
+    flex-wrap:wrap;
+}
+.filter-chip {
+    background:#17212d;
+    border:1px solid #233142;
+    color:#8a9ba8;
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:700;
+    cursor:pointer;
+    letter-spacing:0.4px;
+    transition:all 0.2s;
+    font-family:inherit;
+}
+.filter-chip:hover { color:#fff; border-color:#334155; }
+.filter-chip.active {
+    background:rgba(0,230,118,0.1);
+    border-color:rgba(0,230,118,0.4);
+    color:#00e676;
+}
+.filter-chip.active.bearish {
+    background:rgba(255,82,82,0.1);
+    border-color:rgba(255,82,82,0.4);
+    color:#ff5252;
+}
+.filter-chip.active.neutral {
+    background:rgba(255,183,77,0.1);
+    border-color:rgba(255,183,77,0.4);
+    color:#ffb74d;
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+.stats-bar {
+    display:flex;
+    gap:8px;
+    padding:10px 14px 6px;
+    max-width:1200px;
+    margin:0 auto;
+    flex-wrap:wrap;
+}
+.stat-pill {
+    background:#131b26;
+    border:1px solid #233142;
+    border-radius:8px;
+    padding:6px 10px;
+    font-size:10.5px;
+    color:#8a9ba8;
+    font-weight:600;
+    letter-spacing:0.2px;
+}
+.stat-pill strong { color:#fff; margin-left:4px; font-weight:800; }
+
+/* ============================================================
+   GRID
+   ============================================================ */
+.grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    gap:14px;
+    padding:14px;
+    max-width:1200px;
+    margin:0 auto;
+}
+@media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; gap:12px; padding:12px; }
+    .header-title-main { font-size:13px; }
+    .header-logo { width:36px; height:36px; }
+}
+
+/* ============================================================
+   CHART CARD
+   ============================================================ */
+.chart-card {
+    background:#131b26;
+    border:1px solid #233142;
+    border-radius:12px;
+    padding:14px;
+    cursor:pointer;
+    transition:transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+    position:relative;
+    overflow:hidden;
+}
+.chart-card:hover {
+    transform:translateY(-2px);
+    border-color:rgba(0,230,118,0.35);
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);
+}
+.chart-card:active { transform:translateY(0); }
+
+.chart-card-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:8px;
+    margin-bottom:10px;
+}
+.chart-card-num {
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:1.2px;
+    color:#4d5c6b;
+    text-transform:uppercase;
+}
+.chart-card-badge {
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:0.8px;
+    text-transform:uppercase;
+    padding:3px 8px;
+    border-radius:12px;
+    flex-shrink:0;
+}
+.chart-card-badge.bull {
+    background:rgba(0,230,118,0.1);
+    color:#00e676;
+    border:1px solid rgba(0,230,118,0.3);
+}
+.chart-card-badge.bear {
+    background:rgba(255,82,82,0.1);
+    color:#ff5252;
+    border:1px solid rgba(255,82,82,0.3);
+}
+.chart-card-badge.neutral {
+    background:rgba(255,183,77,0.1);
+    color:#ffb74d;
+    border:1px solid rgba(255,183,77,0.3);
+}
+
+.chart-card-title {
+    font-size:14.5px;
+    font-weight:800;
+    color:#fff;
+    letter-spacing:-0.2px;
+    margin-bottom:4px;
+    line-height:1.25;
+}
+.chart-card-sub {
+    font-size:11px;
+    color:#8a9ba8;
+    margin-bottom:12px;
+    line-height:1.5;
+}
+
+.chart-card-canvas-wrap {
+    background:#0d141e;
+    border-radius:8px;
+    padding:8px;
+    margin-bottom:10px;
+    border:1px solid #1c2836;
+}
+.chart-card-canvas-wrap canvas {
+    width:100%;
+    height:120px;
+    display:block;
+    border-radius:4px;
+}
+
+.chart-card-footer {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    padding-top:8px;
+    border-top:1px solid #1c2836;
+}
+.chart-card-tag {
+    font-size:10px;
+    font-weight:700;
+    color:#64748b;
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+}
+.chart-card-open {
+    font-size:10px;
+    font-weight:800;
+    color:#00e676;
+    letter-spacing:0.6px;
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:4px;
+}
+.chart-card-open svg {
+    width:11px;
+    height:11px;
+    stroke:currentColor;
+    fill:none;
+    stroke-width:2.6;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+/* ============================================================
+   DETAIL MODAL
+   ============================================================ */
+.detail-modal {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.88);
+    backdrop-filter:blur(10px);
+    z-index:500;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:14px;
+    overflow-y:auto;
+}
+.detail-modal.show { display:flex; }
+.detail-card {
+    background:#0c1421;
+    border:1px solid #233142;
+    border-radius:16px;
+    padding:22px 20px 20px;
+    max-width:520px;
+    width:100%;
+    max-height:94vh;
+    overflow-y:auto;
+    position:relative;
+    animation:detailIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+@keyframes detailIn {
+    from { opacity:0; transform:translateY(24px) scale(0.96); }
+    to { opacity:1; transform:translateY(0) scale(1); }
+}
+.detail-close {
+    position:absolute;
+    top:14px;
+    right:14px;
+    width:32px;
+    height:32px;
+    border-radius:8px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid #233142;
+    color:#8a9ba8;
+    font-size:15px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all 0.2s;
+    z-index:2;
+    font-family:inherit;
+}
+.detail-close:hover { color:#fff; background:rgba(255,255,255,0.08); }
+
+.detail-num {
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:1.5px;
+    color:#4d5c6b;
+    text-transform:uppercase;
+    margin-bottom:6px;
+}
+.detail-title {
+    font-size:22px;
+    font-weight:900;
+    color:#fff;
+    letter-spacing:-0.4px;
+    margin-bottom:6px;
+    line-height:1.2;
+    padding-right:40px;
+}
+.detail-badge {
+    display:inline-block;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:0.9px;
+    text-transform:uppercase;
+    padding:4px 10px;
+    border-radius:14px;
+    margin-bottom:16px;
+}
+.detail-badge.bull {
+    background:rgba(0,230,118,0.1);
+    color:#00e676;
+    border:1px solid rgba(0,230,118,0.35);
+}
+.detail-badge.bear {
+    background:rgba(255,82,82,0.1);
+    color:#ff5252;
+    border:1px solid rgba(255,82,82,0.35);
+}
+.detail-badge.neutral {
+    background:rgba(255,183,77,0.1);
+    color:#ffb74d;
+    border:1px solid rgba(255,183,77,0.35);
+}
+
+.detail-canvas-wrap {
+    background:#0d141e;
+    border:1px solid #1c2836;
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:16px;
+}
+.detail-canvas-wrap canvas {
+    width:100%;
+    height:240px;
+    display:block;
+    border-radius:6px;
+}
+
+.detail-desc {
+    font-size:13.5px;
+    line-height:1.75;
+    color:#c2d1d9;
+    white-space:pre-wrap;
+    margin-bottom:16px;
+}
+.detail-desc strong { color:#fff; font-weight:700; }
+
+.detail-section-title {
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:#00e676;
+    margin:16px 0 8px;
+    padding-bottom:6px;
+    border-bottom:1px solid #233142;
+}
+.detail-section-title.bear { color:#ff5252; }
+.detail-section-title.warn { color:#ffb74d; }
+
+.detail-tags {
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    margin-top:12px;
+}
+.detail-tag {
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.4px;
+    padding:4px 10px;
+    border-radius:12px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid #233142;
+    color:#8a9ba8;
+}
+
+.no-result {
+    grid-column:1/-1;
+    text-align:center;
+    padding:60px 20px;
+    color:#4d5c6b;
+    font-size:13px;
+}
+.no-result svg {
+    width:44px;
+    height:44px;
+    stroke:#4d5c6b;
+    fill:none;
+    stroke-width:1.6;
+    margin-bottom:12px;
+    opacity:0.6;
+}
+</style>
+</head>
+<body>
+
+<!-- Header with sketch logo -->
+<div class="header">
+    <div class="header-left">
+        <a href="lobby.html" class="back-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19l-7-7 7-7"/></svg>
+        </a>
+    </div>
+
+    <div class="header-center">
+        <canvas id="headerLogo" class="header-logo" width="80" height="80"></canvas>
+        <div class="header-titles">
+            <div class="header-title-main">
+                <svg class="chart-icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 4 4 5-7"/><circle cx="7" cy="14" r="1" fill="#00e676" stroke="none"/><circle cx="10" cy="11" r="1" fill="#00e676" stroke="none"/><circle cx="14" cy="15" r="1" fill="#00e676" stroke="none"/><circle cx="19" cy="8" r="1" fill="#00e676" stroke="none"/></svg>
+                Chart Learning
+            </div>
+            <div class="header-title-sub">100 Trading Patterns</div>
+        </div>
+    </div>
+
+    <div class="header-right" id="chartCount">0 charts</div>
+</div>
+
+<!-- Search -->
+<div class="search-bar-wrap">
+    <input type="text" id="searchInput" class="search-bar" placeholder="Search pattern by name or keyword… (e.g. hammer, doji)">
+</div>
+
+<!-- Filter chips -->
+<div class="filter-chips" id="filterChips">
+    <div class="filter-chip active" data-filter="all">All Patterns</div>
+    <div class="filter-chip" data-filter="bull">Bullish</div>
+    <div class="filter-chip bearish" data-filter="bear">Bearish</div>
+    <div class="filter-chip neutral" data-filter="neutral">Neutral</div>
+    <div class="filter-chip" data-filter="reversal">Reversal</div>
+    <div class="filter-chip" data-filter="continuation">Continuation</div>
+    <div class="filter-chip" data-filter="candle">Candle</div>
+    <div class="filter-chip" data-filter="trend">Trend</div>
+    <div class="filter-chip" data-filter="breakout">Breakout</div>
+</div>
+
+<!-- Stats bar -->
+<div class="stats-bar">
+    <div class="stat-pill">Total <strong id="statTotal">0</strong></div>
+    <div class="stat-pill">Showing <strong id="statShowing">0</strong></div>
+    <div class="stat-pill">Bullish <strong id="statBull">0</strong></div>
+    <div class="stat-pill">Bearish <strong id="statBear">0</strong></div>
+    <div class="stat-pill">Neutral <strong id="statNeutral">0</strong></div>
+</div>
+
+<!-- Grid -->
+<div class="grid" id="chartGrid"></div>
+
+<!-- Detail modal -->
+<div class="detail-modal" id="detailModal">
+    <div class="detail-card">
+        <button class="detail-close" onclick="closeDetail()">✕</button>
+        <div class="detail-num" id="dNum"></div>
+        <div class="detail-title" id="dTitle"></div>
+        <div class="detail-badge" id="dBadge"></div>
+        <div class="detail-canvas-wrap">
+            <canvas id="detailCanvas" width="960" height="480"></canvas>
+        </div>
+        <div class="detail-section-title" id="dSection1">📖 WHAT IT IS</div>
+        <div class="detail-desc" id="dDesc1"></div>
+
+        <div class="detail-section-title" id="dSection2">🔍 HOW TO IDENTIFY</div>
+        <div class="detail-desc" id="dDesc2"></div>
+
+        <div class="detail-section-title" id="dSection3">💡 TRADING RULES</div>
+        <div class="detail-desc" id="dDesc3"></div>
+
+        <div class="detail-section-title" id="dSection4">⚠️ COMMON MISTAKES</div>
+        <div class="detail-desc" id="dDesc4"></div>
+
+        <div class="detail-section-title" id="dSection5">🎯 WIN RATE EXPECTATION</div>
+        <div class="detail-desc" id="dDesc5"></div>
+
+        <div class="detail-tags" id="dTags"></div>
+    </div>
+</div>
+
+<script>
+/* ============================================================
+   HEADER SKETCH LOGO — hexagon shield + trending chart line
+   ============================================================ */
+function drawHeaderLogo() {
+    const canvas = document.getElementById('headerLogo');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    const cx = W / 2, cy = H / 2;
+    const scale = W / 80;
+
+    /* Outer hexagon outline */
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i - Math.PI / 6;
+        const x = cx + 34 * scale * Math.cos(angle);
+        const y = cy + 34 * scale * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(0, 230, 118, 0.6)';
+    ctx.lineWidth = 1.6 * scale;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    /* Inner shield fill */
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 22 * scale);
+    ctx.lineTo(cx + 18 * scale, cy - 12 * scale);
+    ctx.lineTo(cx + 18 * scale, cy + 10 * scale);
+    ctx.quadraticCurveTo(cx, cy + 26 * scale, cx, cy + 26 * scale);
+    ctx.quadraticCurveTo(cx - 18 * scale, cy + 10 * scale, cx - 18 * scale, cy + 10 * scale);
+    ctx.lineTo(cx - 18 * scale, cy - 12 * scale);
+    ctx.closePath();
+    ctx.fillStyle = '#0e1726';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1 * scale;
+    ctx.stroke();
+
+    /* Trending chart line inside shield */
+    ctx.beginPath();
+    ctx.moveTo(cx - 11 * scale, cy + 6 * scale);
+    ctx.lineTo(cx - 4 * scale, cy - 2 * scale);
+    ctx.lineTo(cx + 1 * scale, cy + 2 * scale);
+    ctx.lineTo(cx + 11 * scale, cy - 10 * scale);
+    ctx.strokeStyle = '#00e676';
+    ctx.lineWidth = 3 * scale;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    /* Arrow head at the end */
+    ctx.beginPath();
+    ctx.moveTo(cx + 6 * scale, cy - 10 * scale);
+    ctx.lineTo(cx + 11 * scale, cy - 10 * scale);
+    ctx.lineTo(cx + 11 * scale, cy - 5 * scale);
+    ctx.strokeStyle = '#00e676';
+    ctx.lineWidth = 2.6 * scale;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    /* Small dots on chart line */
+    const dots = [
+        { x: cx - 11 * scale, y: cy + 6 * scale },
+        { x: cx - 4 * scale, y: cy - 2 * scale },
+        { x: cx + 1 * scale, y: cy + 2 * scale },
+    ];
+    ctx.fillStyle = '#00e676';
+    dots.forEach(d => {
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, 1.8 * scale, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
+drawHeaderLogo();
+window.addEventListener('resize', () => setTimeout(drawHeaderLogo, 100));
+
+/* ============================================================
+   100 CHART PATTERNS DATABASE
+   ============================================================ */
+const PATTERNS = [
+    /* ============== 1-10: SINGLE CANDLE PATTERNS ============== */
+    {
+        id:'doji', name:'Doji', type:'neutral', tags:['candle','reversal'],
+        candles:[{o:50,h:56,l:44,c:50}],
+        desc1:`A Doji is a single-candle pattern where the open and close prices are nearly equal. It looks like a cross or plus sign. The body is very tiny (or invisible) and it has wicks on both sides.`,
+        desc2:`• Open price ≈ Close price\n• Body is extremely small (less than 5% of the candle range)\n• Upper and lower wicks are roughly equal length\n• Appears after a trend or during consolidation\n• Colour doesn't matter (green or red)`,
+        desc3:`• Wait for the NEXT candle to confirm direction\n• If next candle is green → CALL (UP)\n• If next candle is red → PUT (DOWN)\n• Never trade the Doji alone — always wait for confirmation\n• Place stop-loss below/above the Doji's wick`,
+        desc4:`• Don't trade the Doji directly thinking it's a reversal\n• Don't ignore the trend context — Doji in an uptrend differs from one in a downtrend\n• Don't confuse Doji with small-body candles — check wick length`,
+        desc5:`Doji alone: 50-55% accurate (basically a coin flip).\nDoji + next candle confirmation: 60-65% win rate.\nBest combined with support/resistance levels.`
+    },
+    {
+        id:'hammer', name:'Hammer', type:'bull', tags:['candle','reversal'],
+        candles:[{o:52,h:54,l:38,c:53}],
+        desc1:`A Hammer is a bullish reversal candle that appears at the END of a downtrend. It has a small body at the top and a very long lower wick (2-3x the body). It looks like a hammer.`,
+        desc2:`• Appears after a clear downtrend\n• Small body at the top of the range\n• Lower wick is 2x-3x the body length\n• Upper wick is very small or absent\n• Body color: green is stronger than red`,
+        desc3:`• Wait for next green candle to confirm\n• Enter CALL (UP) after confirmation\n• Stop-loss below the Hammer's low\n• Target: previous resistance level`,
+        desc4:`• Don't trade the Hammer alone — always wait for a confirming candle\n• Don't enter if the trend isn't clearly downward\n• Don't trade if volume is very low`,
+        desc5:`At the end of downtrend: 65-70% accuracy.\nBest when combined with support zone.\nHigher success on higher timeframes.`
+    },
+    {
+        id:'inv-hammer', name:'Inverted Hammer', type:'bull', tags:['candle','reversal'],
+        candles:[{o:48,h:62,l:46,c:49}],
+        desc1:`An Inverted Hammer is a bullish reversal candle that appears at the END of a downtrend. Long UPPER wick and small body at the bottom. It signals that buyers tried to push price up.`,
+        desc2:`• Appears after downtrend\n• Small body at the BOTTOM\n• Upper wick is 2x-3x the body\n• Lower wick is very small or absent\n• Looks like an upside-down hammer`,
+        desc3:`• Wait for next green candle\n• Enter CALL after confirmation\n• Stop-loss below the pattern's low\n• Weak pattern — always confirm`,
+        desc4:`• Don't trade without confirmation\n• Rarely works in strong downtrends\n• Not the same as a Shooting Star (that's at the top)`,
+        desc5:`With confirmation: 60-65%.\nAlone: 50-55% (unreliable).`
+    },
+    {
+        id:'shooting-star', name:'Shooting Star', type:'bear', tags:['candle','reversal'],
+        candles:[{o:52,h:66,l:51,c:51}],
+        desc1:`A Shooting Star is a bearish reversal candle at the END of an uptrend. Small body at the bottom, long upper wick. It looks like a star falling from the sky.`,
+        desc2:`• Appears after an uptrend\n• Small body at the BOTTOM\n• Upper wick is 2x-3x the body\n• Lower wick is small or absent\n• Often red body`,
+        desc3:`• Wait for next red candle to confirm\n• Enter PUT (DOWN) after confirmation\n• Stop-loss above the Shooting Star's high\n• Target: previous support level`,
+        desc4:`• Don't trade alone — needs confirmation\n• Don't confuse with Inverted Hammer (that's at the bottom)\n• Weak in strong uptrends`,
+        desc5:`With confirmation: 65-70%.\nBest at resistance levels.`
+    },
+    {
+        id:'hang-man', name:'Hanging Man', type:'bear', tags:['candle','reversal'],
+        candles:[{o:52,h:54,l:38,c:52}],
+        desc1:`A Hanging Man is a bearish reversal candle at the END of an uptrend. Same shape as a Hammer, but appears at the TOP instead of the bottom.`,
+        desc2:`• Appears after an uptrend\n• Small body at the TOP\n• Long lower wick (2x-3x body)\n• Looks identical to a Hammer\n• Location makes it bearish`,
+        desc3:`• Wait for next red candle to confirm\n• Enter PUT (DOWN) after confirmation\n• Stop-loss above the body\n• Weaker than Shooting Star`,
+        desc4:`• Don't trade if next candle is green\n• Location is EVERYTHING — Hammer at bottom, Hanging Man at top\n• Weak signal alone`,
+        desc5:`With confirmation: 55-60%.\nBest combined with resistance zone.`
+    },
+    {
+        id:'marubozu-bull', name:'Bullish Marubozu', type:'bull', tags:['candle','trend','continuation'],
+        candles:[{o:42,h:56,l:42,c:56}],
+        desc1:`A Bullish Marubozu is a large green candle with NO wicks (or very tiny wicks). Open = Low and Close = High. It shows full buyer control from start to finish.`,
+        desc2:`• Body fills the ENTIRE candle range\n• No upper wick (or tiny)\n• No lower wick (or tiny)\n• Open equals Low, Close equals High\n• Very large body`,
+        desc3:`• Strong CALL (UP) signal\n• Enter on the NEXT candle opening\n• Place stop-loss below the candle's low\n• Big trend follows`,
+        desc4:`• Don't fade it (bet against it)\n• Don't enter late — the move already happened\n• Watch for exhaustion if it appears after a long rally`,
+        desc5:`Trend continuation: 70-75%.\nBest signal for breakout trades.`
+    },
+    {
+        id:'marubozu-bear', name:'Bearish Marubozu', type:'bear', tags:['candle','trend','continuation'],
+        candles:[{o:56,h:56,l:42,c:42}],
+        desc1:`A Bearish Marubozu is a large red candle with NO wicks. Open = High and Close = Low. It shows full seller control.`,
+        desc2:`• Body fills entire candle range\n• No upper wick\n• No lower wick\n• Open equals High, Close equals Low\n• Very large red body`,
+        desc3:`• Strong PUT (DOWN) signal\n• Enter on next candle opening\n• Stop-loss above the candle's high\n• Strong trend continuation`,
+        desc4:`• Don't fade it\n• Don't enter late\n• Watch for exhaustion after long declines`,
+        desc5:`Trend continuation: 70-75%.`
+    },
+    {
+        id:'spinning-top', name:'Spinning Top', type:'neutral', tags:['candle','neutral'],
+        candles:[{o:50,h:57,l:43,c:50.5}],
+        desc1:`A Spinning Top has a small body with roughly equal upper and lower wicks. Market indecision — buyers and sellers are balanced.`,
+        desc2:`• Small body (any colour)\n• Upper and lower wicks roughly equal\n• Total range is moderate\n• Appears after a trend or in consolidation`,
+        desc3:`• Wait for direction confirmation\n• If next candle is green → possible CALL\n• If next candle is red → possible PUT\n• Not a strong signal alone`,
+        desc4:`• Don't trade Spinning Top alone\n• Ignore if multiple Spinning Tops appear — market is ranging\n• Wait for breakout`,
+        desc5:`With confirmation: 55-60%.\nNeutral pattern — context matters.`
+    },
+    {
+        id:'long-legged-doji', name:'Long-Legged Doji', type:'neutral', tags:['candle','neutral','reversal'],
+        candles:[{o:50,h:60,l:40,c:50}],
+        desc1:`A Long-Legged Doji has a tiny body with very long upper AND lower wicks. Extreme indecision and volatility.`,
+        desc2:`• Tiny body (open ≈ close)\n• Very long upper wick\n• Very long lower wick\n• Total range is large\n• Looks like a cross with long legs`,
+        desc3:`• Wait for next candle\n• Enter in the direction of the next candle\n• Higher risk — wider stop-loss needed`,
+        desc4:`• Don't trade alone — signal is weak\n• Avoid during low volume\n• Confirm with next candle colour`,
+        desc5:`With confirmation: 55-60%.`
+    },
+    {
+        id:'dragonfly-doji', name:'Dragonfly Doji', type:'bull', tags:['candle','reversal'],
+        candles:[{o:50,h:50,l:38,c:50}],
+        desc1:`A Dragonfly Doji has open = high = close, with a long LOWER wick only. Looks like the letter T upside down. Bullish reversal signal.`,
+        desc2:`• Open = Close = High (same price)\n• Long lower wick\n• No upper wick\n• Shape like a dragonfly`,
+        desc3:`• Bullish reversal at the bottom of downtrend\n• Wait for next green candle\n• Enter CALL after confirmation\n• Stop-loss below the wick`,
+        desc4:`• Don't trade alone\n• Needs to appear at support zone\n• Rare pattern`,
+        desc5:`With confirmation: 65-70%.`
+    },
+
+    /* ============== 11-20: TWO-CANDLE REVERSAL PATTERNS ============== */
+    {
+        id:'bull-engulf', name:'Bullish Engulfing', type:'bull', tags:['candle','reversal'],
+        candles:[{o:52,h:53,l:48,c:49},{o:48,h:56,l:47,c:55}],
+        desc1:`Bullish Engulfing is a two-candle pattern: a small red candle followed by a large green candle that completely covers (engulfs) the previous candle's body.`,
+        desc2:`• First candle: small red\n• Second candle: large green\n• Second candle's body fully covers first\n• Second candle opens below first's close\n• Second candle closes above first's open`,
+        desc3:`• Strong CALL (UP) signal\n• Enter when the pattern completes\n• Stop-loss below the second candle's low\n• Target: previous resistance`,
+        desc4:`• Don't enter mid-pattern — wait for close\n• Don't trade if it appears in a range\n• Needs a preceding downtrend to be valid`,
+        desc5:`At end of downtrend: 65-72%.`
+    },
+    {
+        id:'bear-engulf', name:'Bearish Engulfing', type:'bear', tags:['candle','reversal'],
+        candles:[{o:49,h:53,l:48,c:52},{o:53,h:54,l:47,c:48}],
+        desc1:`Bearish Engulfing is a two-candle pattern: a small green candle followed by a large red candle that completely covers it.`,
+        desc2:`• First candle: small green\n• Second candle: large red\n• Second candle's body fully covers first\n• Second opens above first's close\n• Second closes below first's open`,
+        desc3:`• Strong PUT (DOWN) signal\n• Enter when pattern completes\n• Stop-loss above second candle's high\n• Target: previous support`,
+        desc4:`• Don't trade in ranging markets\n• Wait for candle close\n• Needs preceding uptrend`,
+        desc5:`At end of uptrend: 65-72%.`
+    },
+    {
+        id:'piercing', name:'Piercing Line', type:'bull', tags:['candle','reversal'],
+        candles:[{o:55,h:56,l:50,c:51},{o:49,h:54,l:48,c:53}],
+        desc1:`Piercing Line is a bullish reversal: a red candle followed by a green candle that closes ABOVE the midpoint of the previous red candle's body.`,
+        desc2:`• First candle: red\n• Second candle: green\n• Second opens below first's low\n• Second closes above first's midpoint\n• Doesn't fully engulf (unlike Engulfing)`,
+        desc3:`• Bullish reversal after downtrend\n• Enter CALL when pattern completes\n• Stop-loss below second candle's low`,
+        desc4:`• Doesn't work if second candle closes BELOW midpoint\n• Weaker than Bullish Engulfing\n• Needs downtrend context`,
+        desc5:`60-68% accuracy.`
+    },
+    {
+        id:'dark-cloud', name:'Dark Cloud Cover', type:'bear', tags:['candle','reversal'],
+        candles:[{o:48,h:53,l:47,c:52},{o:53,h:54,l:49,c:50}],
+        desc1:`Dark Cloud Cover is a bearish reversal: a green candle followed by a red candle that closes BELOW the midpoint of the previous green body.`,
+        desc2:`• First candle: green\n• Second candle: red\n• Second opens above first's high\n• Second closes below first's midpoint\n• Strong bearish signal`,
+        desc3:`• Enter PUT when pattern completes\n• Stop-loss above second candle's high`,
+        desc4:`• Doesn't work if second closes above midpoint\n• Weaker than Bearish Engulfing\n• Needs uptrend context`,
+        desc5:`60-68% accuracy.`
+    },
+    {
+        id:'tweezer-bottom', name:'Tweezer Bottom', type:'bull', tags:['candle','reversal'],
+        candles:[{o:54,h:55,l:46,c:48},{o:48,h:53,l:46,c:52}],
+        desc1:`Tweezer Bottom is two candles with the SAME LOW price. First is red, second is green. Reversal signal at bottom.`,
+        desc2:`• Two candles with same low\n• First: red candle\n• Second: green candle\n• Looks like tweezers holding the low`,
+        desc3:`• Enter CALL after second candle closes green\n• Stop-loss below the common low\n• Stronger at support levels`,
+        desc4:`• Same low must be precise\n• Not strong without trend context`,
+        desc5:`At support: 60-65%.`
+    },
+    {
+        id:'tweezer-top', name:'Tweezer Top', type:'bear', tags:['candle','reversal'],
+        candles:[{o:48,h:54,l:47,c:52},{o:52,h:54,l:47,c:48}],
+        desc1:`Tweezer Top is two candles with the SAME HIGH price. First is green, second is red. Reversal at top.`,
+        desc2:`• Two candles with same high\n• First: green candle\n• Second: red candle`,
+        desc3:`• Enter PUT after second red candle\n• Stop-loss above common high`,
+        desc4:`• Common high must be exact\n• Not reliable without trend`,
+        desc5:`At resistance: 60-65%.`
+    },
+    {
+        id:'bull-harami', name:'Bullish Harami', type:'bull', tags:['candle','reversal'],
+        candles:[{o:56,h:57,l:48,c:49},{o:51,h:53,l:50,c:52}],
+        desc1:`Bullish Harami is a large red candle followed by a small green candle whose body is INSIDE the previous body. Small range after big move.`,
+        desc2:`• First: large red candle\n• Second: small green candle\n• Second body fits inside first body\n• Represents contraction after downtrend`,
+        desc3:`• Wait for confirmation candle\n• Enter CALL after next green candle\n• Stop-loss below harami low`,
+        desc4:`• Not a strong signal alone\n• Needs confirmation\n• Weaker than Engulfing`,
+        desc5:`With confirmation: 55-62%.`
+    },
+    {
+        id:'bear-harami', name:'Bearish Harami', type:'bear', tags:['candle','reversal'],
+        candles:[{o:48,h:55,l:47,c:54},{o:52,h:53,l:50,c:51}],
+        desc1:`Bearish Harami is a large green candle followed by a small red candle inside its body. Contraction after uptrend.`,
+        desc2:`• First: large green candle\n• Second: small red candle\n• Second body inside first body`,
+        desc3:`• Enter PUT after confirmation\n• Stop-loss above harami high`,
+        desc4:`• Weak alone\n• Needs strong confirmation`,
+        desc5:`With confirmation: 55-62%.`
+    },
+    {
+        id:'kicker-bull', name:'Bullish Kicker', type:'bull', tags:['candle','reversal','breakout'],
+        candles:[{o:55,h:56,l:48,c:49},{o:52,h:60,l:52,c:59}],
+        desc1:`Bullish Kicker: a red candle followed by a green candle that opens ABOVE the previous close with a gap. Very powerful reversal.`,
+        desc2:`• Gap up between candles\n• First candle: red\n• Second candle: large green\n• Second opens above first's high`,
+        desc3:`• Strong CALL signal\n• Enter immediately after second candle opens\n• Stop-loss below the gap`,
+        desc4:`• Gaps rare in 30-second candles\n• Don't chase too late`,
+        desc5:`Very strong: 70-80% when valid.`
+    },
+    {
+        id:'kicker-bear', name:'Bearish Kicker', type:'bear', tags:['candle','reversal','breakout'],
+        candles:[{o:49,h:55,l:48,c:54},{o:52,h:52,l:44,c:45}],
+        desc1:`Bearish Kicker: a green candle followed by a red candle that opens BELOW previous close with a gap. Powerful bearish reversal.`,
+        desc2:`• Gap down between candles\n• First: green\n• Second: large red\n• Second opens below first's low`,
+        desc3:`• Strong PUT signal\n• Enter immediately after second opens\n• Stop-loss above the gap`,
+        desc4:`• Gaps rare\n• Don't enter late`,
+        desc5:`Very strong: 70-80%.`
+    },
+
+    /* ============== 21-30: THREE-CANDLE PATTERNS ============== */
+    {
+        id:'morning-star', name:'Morning Star', type:'bull', tags:['candle','reversal'],
+        candles:[{o:55,h:56,l:51,c:52},{o:51,h:52,l:47,c:49},{o:50,h:56,l:49,c:55}],
+        desc1:`Morning Star is a three-candle bullish reversal: red candle, small indecision candle, then strong green candle. Appears at the bottom of downtrend.`,
+        desc2:`• Candle 1: large red\n• Candle 2: small body (any color) below candle 1\n• Candle 3: large green closing above midpoint of candle 1\n• Forms like a morning star rising`,
+        desc3:`• Strong CALL after candle 3 completes\n• Stop-loss below candle 2's low\n• Target: recent resistance`,
+        desc4:`• Don't trade mid-pattern\n• Candle 3 must close well above midpoint\n• Needs downtrend context`,
+        desc5:`70-75% accuracy.`
+    },
+    {
+        id:'evening-star', name:'Evening Star', type:'bear', tags:['candle','reversal'],
+        candles:[{o:48,h:52,l:47,c:51},{o:52,h:55,l:51,c:53},{o:51,h:52,l:46,c:47}],
+        desc1:`Evening Star is a three-candle bearish reversal: green candle, small indecision candle, then strong red candle. Appears at the top of uptrend.`,
+        desc2:`• Candle 1: large green\n• Candle 2: small body above candle 1\n• Candle 3: large red closing below midpoint of candle 1`,
+        desc3:`• Strong PUT after candle 3\n• Stop-loss above candle 2's high\n• Target: recent support`,
+        desc4:`• Don't trade mid-pattern\n• Needs uptrend context`,
+        desc5:`70-75% accuracy.`
+    },
+    {
+        id:'three-white', name:'Three White Soldiers', type:'bull', tags:['candle','trend','continuation'],
+        candles:[{o:44,h:48,l:43,c:47},{o:47,h:51,l:46,c:50},{o:50,h:54,l:49,c:53}],
+        desc1:`Three White Soldiers: three consecutive green candles, each opening within the previous body and closing higher. Strong bullish continuation.`,
+        desc2:`• Three green candles in a row\n• Each opens inside previous body\n• Each closes at higher level\n• Small or no wicks`,
+        desc3:`• Strong CALL after candle 3\n• Stop-loss below candle 1's low\n• Trend continuation signal`,
+        desc4:`• Don't fade the trend\n• Beware if it appears at resistance`,
+        desc5:`70-75% accuracy.`
+    },
+    {
+        id:'three-black', name:'Three Black Crows', type:'bear', tags:['candle','trend','continuation'],
+        candles:[{o:55,h:56,l:51,c:52},{o:52,h:53,l:48,c:49},{o:49,h:50,l:45,c:46}],
+        desc1:`Three Black Crows: three consecutive red candles, each opening within the previous body and closing lower. Strong bearish continuation.`,
+        desc2:`• Three red candles in a row\n• Each opens inside previous body\n• Each closes lower`,
+        desc3:`• Strong PUT after candle 3\n• Stop-loss above candle 1's high`,
+        desc4:`• Don't bet against it\n• Beware if at support zone`,
+        desc5:`70-75% accuracy.`
+    },
+    {
+        id:'three-inside-up', name:'Three Inside Up', type:'bull', tags:['candle','reversal'],
+        candles:[{o:55,h:56,l:50,c:51},{o:52,h:53,l:50,c:52},{o:52,h:57,l:51,c:56}],
+        desc1:`Three Inside Up: red candle, small green (harami), then a green candle closing above candle 1's open. Bullish reversal.`,
+        desc2:`• Candle 1: large red\n• Candle 2: small green inside candle 1\n• Candle 3: green closing above candle 1's open`,
+        desc3:`• Enter CALL after candle 3\n• Stop-loss below candle 2's low`,
+        desc4:`• Weaker than Morning Star\n• Needs confirmation at candle 3`,
+        desc5:`65-70% accuracy.`
+    },
+    {
+        id:'three-inside-down', name:'Three Inside Down', type:'bear', tags:['candle','reversal'],
+        candles:[{o:48,h:55,l:47,c:54},{o:52,h:53,l:51,c:51},{o:52,h:52,l:46,c:47}],
+        desc1:`Three Inside Down: green, small red harami, then red closing below candle 1's open. Bearish reversal.`,
+        desc2:`• Candle 1: large green\n• Candle 2: small red inside\n• Candle 3: red below candle 1's open`,
+        desc3:`• PUT after candle 3\n• Stop-loss above candle 2's high`,
+        desc4:`• Weaker than Evening Star`,
+        desc5:`65-70%.`
+    },
+    {
+        id:'three-outside-up', name:'Three Outside Up', type:'bull', tags:['candle','reversal'],
+        candles:[{o:52,h:53,l:48,c:49},{o:48,h:55,l:47,c:54},{o:53,h:58,l:52,c:57}],
+        desc1:`Three Outside Up: red, then Bullish Engulfing, then green higher than candle 2. Strong bullish reversal.`,
+        desc2:`• Candle 1: red\n• Candle 2: green engulfing candle 1\n• Candle 3: green closing higher`,
+        desc3:`• CALL after candle 3\n• Stop-loss below candle 2's low`,
+        desc4:`• Stronger than Three Inside Up`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'three-outside-down', name:'Three Outside Down', type:'bear', tags:['candle','reversal'],
+        candles:[{o:48,h:53,l:47,c:52},{o:53,h:54,l:47,c:48},{o:48,h:49,l:44,c:45}],
+        desc1:`Three Outside Down: green, then Bearish Engulfing, then red lower than candle 2. Bearish reversal.`,
+        desc2:`• Candle 1: green\n• Candle 2: red engulfing candle 1\n• Candle 3: red lower`,
+        desc3:`• PUT after candle 3`,
+        desc4:`• Very strong pattern`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'abandoned-baby-bull', name:'Bullish Abandoned Baby', type:'bull', tags:['candle','reversal'],
+        candles:[{o:56,h:57,l:52,c:53},{o:50,h:51,l:49,c:50},{o:52,h:58,l:51,c:57}],
+        desc1:`Bullish Abandoned Baby: red candle, then doji that gaps below, then green candle that gaps above. Very rare and strong bullish reversal.`,
+        desc2:`• Candle 1: red\n• Candle 2: doji with gap down\n• Candle 3: green with gap up`,
+        desc3:`• Strong CALL after candle 3\n• Rare pattern — high accuracy`,
+        desc4:`• Gaps rare on 30s charts`,
+        desc5:`75-80% when it appears.`
+    },
+    {
+        id:'abandoned-baby-bear', name:'Bearish Abandoned Baby', type:'bear', tags:['candle','reversal'],
+        candles:[{o:48,h:52,l:47,c:51},{o:53,h:54,l:52,c:53},{o:51,h:52,l:46,c:47}],
+        desc1:`Bearish Abandoned Baby: green candle, then doji gaps above, then red candle gaps below. Rare and strong.`,
+        desc2:`• Candle 1: green\n• Candle 2: doji with gap up\n• Candle 3: red with gap down`,
+        desc3:`• Strong PUT after candle 3`,
+        desc4:`• Rare pattern`,
+        desc5:`75-80%.`
+    },
+
+    /* ============== 31-40: CONTINUATION PATTERNS ============== */
+    {
+        id:'rising-three', name:'Rising Three Methods', type:'bull', tags:['trend','continuation'],
+        candles:[{o:44,h:52,l:43,c:51},{o:50,h:51,l:47,c:48},{o:48,h:49,l:45,c:46},{o:46,h:47,l:44,c:45},{o:47,h:55,l:46,c:54}],
+        desc1:`Rising Three Methods: a large green candle, three small red candles (consolidation), then another large green candle breaking to new highs. Bullish continuation.`,
+        desc2:`• Candle 1: large green\n• Candles 2-4: small red candles inside candle 1's range\n• Candle 5: large green making new high`,
+        desc3:`• Strong CALL after candle 5\n• Trend continuation — follow the trend`,
+        desc4:`• Needs clear uptrend before pattern`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'falling-three', name:'Falling Three Methods', type:'bear', tags:['trend','continuation'],
+        candles:[{o:56,h:57,l:48,c:49},{o:50,h:53,l:49,c:52},{o:52,h:55,l:51,c:54},{o:54,h:56,l:53,c:55},{o:54,h:55,l:46,c:47}],
+        desc1:`Falling Three Methods: a large red candle, three small green candles (consolidation), then another large red candle breaking to new lows. Bearish continuation.`,
+        desc2:`• Candle 1: large red\n• Candles 2-4: small green inside candle 1\n• Candle 5: large red making new low`,
+        desc3:`• Strong PUT after candle 5`,
+        desc4:`• Needs clear downtrend`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'bull-flag', name:'Bull Flag', type:'bull', tags:['trend','continuation','breakout'],
+        candles:[{o:40,h:48,l:39,c:47},{o:47,h:52,l:46,c:51},{o:51,h:52,l:48,c:49},{o:49,h:50,l:47,c:48},{o:48,h:56,l:47,c:55}],
+        desc1:`Bull Flag: a sharp move up (flagpole), then a small consolidation (flag), then a breakout higher. Classic bullish continuation.`,
+        desc2:`• Candle 1-2: sharp rise (flagpole)\n• Candle 3-4: small pullback (flag)\n• Candle 5: strong breakout above flag`,
+        desc3:`• Enter CALL on flag breakout\n• Stop-loss below the flag's low\n• Target: flagpole height added to breakout point`,
+        desc4:`• Wait for actual breakout, not inside flag`,
+        desc5:`Breakout continuation: 65-72%.`
+    },
+    {
+        id:'bear-flag', name:'Bear Flag', type:'bear', tags:['trend','continuation','breakout'],
+        candles:[{o:56,h:57,l:48,c:49},{o:49,h:50,l:44,c:45},{o:45,h:47,l:44,c:46},{o:46,h:48,l:45,c:47},{o:47,h:48,l:39,c:40}],
+        desc1:`Bear Flag: sharp drop (flagpole), small bounce (flag), then breakdown lower. Bearish continuation.`,
+        desc2:`• Candle 1-2: sharp drop\n• Candle 3-4: small bounce\n• Candle 5: breakdown below flag`,
+        desc3:`• Enter PUT on breakdown\n• Stop-loss above flag high`,
+        desc4:`• Wait for breakdown`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'ascending-triangle', name:'Ascending Triangle', type:'bull', tags:['trend','continuation','breakout'],
+        candles:[{o:44,h:50,l:43,c:49},{o:49,h:50,l:46,c:47},{o:47,h:50,l:47,c:49},{o:49,h:50,l:48,c:49.5},{o:49,h:56,l:49,c:55}],
+        desc1:`Ascending Triangle: higher lows against a flat resistance line. Breakout usually upward.`,
+        desc2:`• Flat resistance line at top\n• Rising support (higher lows)\n• Compresses into a triangle`,
+        desc3:`• Enter CALL on breakout above resistance\n• Stop-loss below last higher low`,
+        desc4:`• Wait for confirmed breakout`,
+        desc5:`Breakout up: 65-70%.`
+    },
+    {
+        id:'descending-triangle', name:'Descending Triangle', type:'bear', tags:['trend','continuation','breakout'],
+        candles:[{o:56,h:57,l:50,c:51},{o:51,h:54,l:50,c:53},{o:53,h:54,l:50,c:51},{o:51,h:52,l:50,c:50.5},{o:51,h:51,l:44,c:45}],
+        desc1:`Descending Triangle: lower highs against flat support. Breakout usually downward.`,
+        desc2:`• Flat support line at bottom\n• Lower highs forming\n• Compresses into triangle`,
+        desc3:`• Enter PUT on breakdown below support\n• Stop-loss above last lower high`,
+        desc4:`• Wait for confirmed breakdown`,
+        desc5:`Breakdown: 65-70%.`
+    },
+    {
+        id:'symmetrical-triangle', name:'Symmetrical Triangle', type:'neutral', tags:['trend','continuation','breakout'],
+        candles:[{o:44,h:54,l:43,c:52},{o:52,h:53,l:46,c:47},{o:47,h:52,l:47,c:51},{o:51,h:52,l:48,c:49},{o:49,h:54,l:49,c:53}],
+        desc1:`Symmetrical Triangle: lower highs and higher lows converging. Breakout can go either direction.`,
+        desc2:`• Lower highs on top\n• Higher lows on bottom\n• Triangle apex forming`,
+        desc3:`• Wait for breakout\n• Enter in direction of breakout\n• Big move usually follows`,
+        desc4:`• Don't trade inside the triangle`,
+        desc5:`Breakout: 60-68%.`
+    },
+    {
+        id:'cup-handle', name:'Cup and Handle', type:'bull', tags:['trend','continuation','breakout'],
+        candles:[{o:40,h:42,l:36,c:38},{o:38,h:40,l:34,c:39},{o:39,h:42,l:39,c:41},{o:41,h:42,l:38,c:39},{o:39,h:44,l:39,c:43}],
+        desc1:`Cup and Handle: price drops (cup), recovers to resistance, small pullback (handle), then breakout higher. Classic bullish pattern.`,
+        desc2:`• Cup shape (rounded bottom)\n• Handle (small pullback)\n• Breakout above cup resistance`,
+        desc3:`• Enter CALL on handle breakout`,
+        desc4:`• Handle should be small`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'inverse-cup-handle', name:'Inverse Cup and Handle', type:'bear', tags:['trend','continuation','breakout'],
+        candles:[{o:60,h:64,l:58,c:62},{o:62,h:66,l:60,c:61},{o:61,h:62,l:58,c:59},{o:59,h:62,l:57,c:61},{o:61,h:62,l:56,c:57}],
+        desc1:`Inverse Cup and Handle: upside-down cup. Bearish continuation.`,
+        desc2:`• Upside-down cup\n• Small bounce (handle)\n• Breakdown below cup support`,
+        desc3:`• PUT on breakdown`,
+        desc4:`• Wait for handle breakdown`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'pennant-bull', name:'Bullish Pennant', type:'bull', tags:['trend','continuation','breakout'],
+        candles:[{o:38,h:46,l:37,c:45},{o:45,h:46,l:42,c:43},{o:43,h:44,l:41,c:42},{o:42,h:43,l:41,c:41.5},{o:41.5,h:50,l:41,c:49}],
+        desc1:`Bullish Pennant: sharp rise (flagpole), then small symmetrical triangle (pennant), then breakout higher.`,
+        desc2:`• Flagpole: quick rise\n• Pennant: small triangle consolidation\n• Breakout above`,
+        desc3:`• CALL on breakout`,
+        desc4:`• Wait for actual breakout`,
+        desc5:`65-72%.`
+    },
+
+    /* ============== 41-50: REVERSAL PATTERNS ============== */
+    {
+        id:'head-shoulders', name:'Head and Shoulders', type:'bear', tags:['trend','reversal','breakout'],
+        candles:[{o:40,h:46,l:39,c:45},{o:45,h:52,l:44,c:50},{o:50,h:51,l:44,c:46},{o:46,h:52,l:45,c:50},{o:50,h:51,l:40,c:41}],
+        desc1:`Head and Shoulders: three peaks — a middle peak (head) higher than two side peaks (shoulders). Classic bearish reversal pattern.`,
+        desc2:`• Left shoulder: peak 1\n• Head: higher peak 2\n• Right shoulder: peak 3 (similar to peak 1)\n• Neckline connecting the dips`,
+        desc3:`• Enter PUT after right shoulder breakdown below neckline\n• Stop-loss above right shoulder\n• Target: head height below neckline`,
+        desc4:`• Wait for neckline breakout`,
+        desc5:`Breakdown: 70-75%.`
+    },
+    {
+        id:'inv-head-shoulders', name:'Inverse Head and Shoulders', type:'bull', tags:['trend','reversal','breakout'],
+        candles:[{o:56,h:57,l:50,c:51},{o:51,h:52,l:44,c:46},{o:46,h:51,l:45,c:50},{o:50,h:51,l:44,c:46},{o:46,h:56,l:45,c:55}],
+        desc1:`Inverse Head and Shoulders: three troughs with the middle one lowest. Bullish reversal pattern.`,
+        desc2:`• Left shoulder: trough 1\n• Head: deeper trough 2\n• Right shoulder: trough 3 (similar to 1)\n• Neckline over the two peaks between`,
+        desc3:`• Enter CALL on neckline breakout\n• Target: head depth added to breakout`,
+        desc4:`• Wait for confirmed breakout`,
+        desc5:`Breakout: 70-75%.`
+    },
+    {
+        id:'double-top', name:'Double Top', type:'bear', tags:['trend','reversal'],
+        candles:[{o:42,h:52,l:41,c:50},{o:50,h:51,l:46,c:47},{o:47,h:52,l:47,c:50},{o:50,h:51,l:44,c:45},{o:45,h:46,l:39,c:40}],
+        desc1:`Double Top: two peaks at the same resistance level, then breakdown. Bearish reversal.`,
+        desc2:`• Peak 1\n• Pullback\n• Peak 2 ≈ Peak 1\n• Breakdown below the valley`,
+        desc3:`• PUT on breakdown below valley`,
+        desc4:`• Peaks must be at same level`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'double-bottom', name:'Double Bottom', type:'bull', tags:['trend','reversal'],
+        candles:[{o:56,h:57,l:46,c:48},{o:48,h:52,l:47,c:51},{o:51,h:52,l:46,c:48},{o:48,h:54,l:47,c:53},{o:53,h:59,l:52,c:58}],
+        desc1:`Double Bottom: two troughs at the same support, then breakout upward. Bullish reversal.`,
+        desc2:`• Trough 1\n• Bounce\n• Trough 2 ≈ Trough 1\n• Breakout above peak between`,
+        desc3:`• CALL on breakout above the middle peak`,
+        desc4:`• Troughs must be at same level`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'triple-top', name:'Triple Top', type:'bear', tags:['trend','reversal'],
+        candles:[{o:42,h:52,l:41,c:50},{o:50,h:51,l:46,c:47},{o:47,h:52,l:46,c:50},{o:50,h:51,l:46,c:47},{o:47,h:52,l:46,c:50},{o:50,h:51,l:42,c:43}],
+        desc1:`Triple Top: three peaks at same resistance, then breakdown. Strong bearish reversal.`,
+        desc2:`• Three peaks at same level\n• Each has a pullback`,
+        desc3:`• PUT on breakdown below the support valley`,
+        desc4:`• Needs 3 clear peaks`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'triple-bottom', name:'Triple Bottom', type:'bull', tags:['trend','reversal'],
+        candles:[{o:58,h:59,l:48,c:50},{o:50,h:54,l:49,c:53},{o:53,h:54,l:48,c:50},{o:50,h:54,l:49,c:53},{o:53,h:54,l:48,c:50},{o:50,h:58,l:49,c:57}],
+        desc1:`Triple Bottom: three troughs at same support, then breakout upward. Strong bullish reversal.`,
+        desc2:`• Three troughs at same level`,
+        desc3:`• CALL on breakout above the resistance peak`,
+        desc4:`• Needs 3 clear troughs`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'v-reversal-bull', name:'V-Bottom Reversal', type:'bull', tags:['trend','reversal'],
+        candles:[{o:54,h:55,l:44,c:45},{o:45,h:46,l:40,c:41},{o:41,h:42,l:38,c:40},{o:41,h:48,l:41,c:47},{o:47,h:53,l:46,c:52}],
+        desc1:`V-Bottom Reversal: sharp drop followed by a sharp reversal. Looks like a V. Bullish reversal.`,
+        desc2:`• Sharp decline\n• Quick turnaround\n• Sharp rise back up`,
+        desc3:`• CALL after reversal is confirmed\n• Stop-loss below V's low`,
+        desc4:`• Hard to catch — usually too late`,
+        desc5:`65-70%.`
+    },
+    {
+        id:'v-reversal-bear', name:'Inverted V Reversal', type:'bear', tags:['trend','reversal'],
+        candles:[{o:42,h:52,l:41,c:51},{o:51,h:56,l:50,c:55},{o:55,h:56,l:52,c:53},{o:53,h:54,l:46,c:47},{o:47,h:48,l:41,c:42}],
+        desc1:`Inverted V Reversal: sharp rise followed by a sharp reversal. Looks like upside-down V. Bearish reversal.`,
+        desc2:`• Sharp rise\n• Quick reversal down\n• Sharp decline back down`,
+        desc3:`• PUT after reversal is confirmed`,
+        desc4:`• Hard to catch at exact top`,
+        desc5:`65-70%.`
+    },
+    {
+        id:'rounding-bottom', name:'Rounding Bottom', type:'bull', tags:['trend','reversal'],
+        candles:[{o:52,h:53,l:46,c:47},{o:47,h:48,l:44,c:45},{o:45,h:46,l:42,c:44},{o:44,h:46,l:42,c:45},{o:45,h:49,l:44,c:48},{o:48,h:54,l:47,c:53}],
+        desc1:`Rounding Bottom: slow curved bottom forming a U shape. Gradual bullish reversal.`,
+        desc2:`• Slow decline\n• Flat bottom (rounding)\n• Slow recovery`,
+        desc3:`• CALL on confirmed upward breakout`,
+        desc4:`• Takes time to form`,
+        desc5:`65-70%.`
+    },
+    {
+        id:'rounding-top', name:'Rounding Top', type:'bear', tags:['trend','reversal'],
+        candles:[{o:46,h:54,l:45,c:53},{o:53,h:56,l:52,c:55},{o:55,h:56,l:52,c:53},{o:53,h:55,l:51,c:52},{o:52,h:53,l:48,c:49},{o:49,h:50,l:43,c:44}],
+        desc1:`Rounding Top: slow curved top forming an upside-down U. Gradual bearish reversal.`,
+        desc2:`• Slow rise\n• Flat top\n• Slow decline`,
+        desc3:`• PUT on confirmed downward breakdown`,
+        desc4:`• Takes time`,
+        desc5:`65-70%.`
+    },
+
+    /* ============== 51-60: ADVANCED REVERSAL PATTERNS ============== */
+    {
+        id:'rising-wedge', name:'Rising Wedge', type:'bear', tags:['trend','reversal','breakout'],
+        candles:[{o:42,h:46,l:41,c:45},{o:45,h:50,l:44,c:48},{o:48,h:52,l:47,c:50},{o:50,h:53,l:49,c:51},{o:51,h:53,l:48,c:49}],
+        desc1:`Rising Wedge: price rising in a narrowing channel. Bearish reversal pattern.`,
+        desc2:`• Higher highs AND higher lows\n• But the range is narrowing\n• Two lines converge upward`,
+        desc3:`• PUT on breakdown of lower trendline`,
+        desc4:`• Don't confuse with ascending channel`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'falling-wedge', name:'Falling Wedge', type:'bull', tags:['trend','reversal','breakout'],
+        candles:[{o:58,h:59,l:54,c:55},{o:55,h:56,l:51,c:52},{o:52,h:53,l:49,c:50},{o:50,h:51,l:48,c:49},{o:49,h:54,l:48,c:53}],
+        desc1:`Falling Wedge: price falling in a narrowing channel. Bullish reversal pattern.`,
+        desc2:`• Lower highs AND lower lows\n• Range narrowing\n• Two lines converge downward`,
+        desc3:`• CALL on breakout of upper trendline`,
+        desc4:`• Don't confuse with falling channel`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'diamond-top', name:'Diamond Top', type:'bear', tags:['trend','reversal'],
+        candles:[{o:42,h:50,l:41,c:49},{o:49,h:53,l:48,c:51},{o:51,h:53,l:48,c:52},{o:52,h:53,l:48,c:49},{o:49,h:52,l:48,c:51},{o:51,h:52,l:45,c:46}],
+        desc1:`Diamond Top: price expands then contracts forming a diamond shape at the top. Bearish reversal.`,
+        desc2:`• Expand outward\n• Contract inward\n• Diamond shape`,
+        desc3:`• PUT on breakdown`,
+        desc4:`• Rare pattern`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'diamond-bottom', name:'Diamond Bottom', type:'bull', tags:['trend','reversal'],
+        candles:[{o:58,h:59,l:50,c:51},{o:51,h:52,l:48,c:49},{o:49,h:52,l:47,c:51},{o:51,h:53,l:48,c:52},{o:52,h:54,l:50,c:51},{o:51,h:58,l:51,c:57}],
+        desc1:`Diamond Bottom: diamond shape at the bottom of a downtrend. Bullish reversal.`,
+        desc2:`• Diamond shape at bottom`,
+        desc3:`• CALL on breakout`,
+        desc4:`• Rare pattern`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'bump-run', name:'Bump and Run Reversal', type:'bear', tags:['trend','reversal'],
+        candles:[{o:42,h:44,l:41,c:43},{o:43,h:50,l:42,c:49},{o:49,h:56,l:48,c:55},{o:55,h:56,l:50,c:51},{o:51,h:52,l:44,c:45}],
+        desc1:`Bump and Run Reversal: sharp acceleration (bump) followed by a breakdown (run). Bearish reversal.`,
+        desc2:`• Leading-in trend\n• Sharp bump up\n• Breakdown through trendline`,
+        desc3:`• PUT on breakdown of trendline`,
+        desc4:`• Bump is very steep`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'island-reversal-bull', name:'Bullish Island Reversal', type:'bull', tags:['trend','reversal','breakout'],
+        candles:[{o:56,h:57,l:52,c:53},{o:50,h:51,l:49,c:50},{o:49,h:50,l:47,c:48},{o:50,h:52,l:50,c:51},{o:53,h:58,l:52,c:57}],
+        desc1:`Bullish Island Reversal: price gaps down, consolidates, then gaps up. The middle is an "island".`,
+        desc2:`• Gap down\n• Small consolidation\n• Gap up`,
+        desc3:`• CALL on gap-up`,
+        desc4:`• Gaps rare on 30s charts`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'island-reversal-bear', name:'Bearish Island Reversal', type:'bear', tags:['trend','reversal','breakout'],
+        candles:[{o:48,h:53,l:47,c:52},{o:54,h:55,l:53,c:54},{o:54,h:55,l:52,c:53},{o:53,h:54,l:52,c:53},{o:51,h:52,l:46,c:47}],
+        desc1:`Bearish Island Reversal: price gaps up, consolidates, then gaps down.`,
+        desc2:`• Gap up\n• Consolidation\n• Gap down`,
+        desc3:`• PUT on gap-down`,
+        desc4:`• Gaps rare`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'key-reversal-bull', name:'Bullish Key Reversal', type:'bull', tags:['trend','reversal'],
+        candles:[{o:54,h:55,l:46,c:47},{o:46,h:56,l:45,c:55}],
+        desc1:`Bullish Key Reversal: makes a new low but closes above the previous day's close. Bullish reversal.`,
+        desc2:`• New low made\n• But close above previous close`,
+        desc3:`• CALL after close`,
+        desc4:`• Needs clear previous downtrend`,
+        desc5:`65-70%.`
+    },
+    {
+        id:'key-reversal-bear', name:'Bearish Key Reversal', type:'bear', tags:['trend','reversal'],
+        candles:[{o:46,h:54,l:45,c:53},{o:54,h:55,l:44,c:45}],
+        desc1:`Bearish Key Reversal: makes a new high but closes below previous close. Bearish reversal.`,
+        desc2:`• New high made\n• But close below previous close`,
+        desc3:`• PUT after close`,
+        desc4:`• Needs clear previous uptrend`,
+        desc5:`65-70%.`
+    },
+    {
+        id:'exhaustion-gap-bull', name:'Bullish Exhaustion Gap', type:'bull', tags:['trend','reversal','breakout'],
+        candles:[{o:44,h:50,l:43,c:49},{o:52,h:54,l:51,c:53},{o:53,h:54,l:52,c:53},{o:53,h:58,l:52,c:57}],
+        desc1:`Bullish Exhaustion Gap: gap up near the top of a trend, indicating last burst before reversal.`,
+        desc2:`• Gap up\n• After long uptrend`,
+        desc3:`• Careful — this may signal top`,
+        desc4:`• Hard to trade alone`,
+        desc5:`Context dependent.`
+    },
+
+    /* ============== 61-70: GAP PATTERNS ============== */
+    {
+        id:'common-gap', name:'Common Gap', type:'neutral', tags:['trend','neutral'],
+        candles:[{o:50,h:52,l:49,c:51},{o:53,h:55,l:52,c:54}],
+        desc1:`Common Gap: a small gap that fills quickly. Normal market noise.`,
+        desc2:`• Small gap between candles\n• Fills quickly`,
+        desc3:`• Wait for gap fill`,
+        desc4:`• Not tradeable alone`,
+        desc5:`Neutral — often fills.`
+    },
+    {
+        id:'breakaway-gap', name:'Breakaway Gap', type:'bull', tags:['trend','breakout'],
+        candles:[{o:44,h:46,l:43,c:45},{o:48,h:52,l:47,c:51}],
+        desc1:`Breakaway Gap: gap up out of consolidation or pattern. Signals start of new trend.`,
+        desc2:`• Gap out of range\n• Volume spike`,
+        desc3:`• CALL on breakout gap`,
+        desc4:`• Confirm with volume`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'runaway-gap', name:'Runaway Gap', type:'bull', tags:['trend','continuation'],
+        candles:[{o:46,h:50,l:45,c:49},{o:52,h:56,l:51,c:55}],
+        desc1:`Runaway Gap: gap during the middle of a trend. Confirms continuation.`,
+        desc2:`• Gap mid-trend\n• Continuation signal`,
+        desc3:`• CALL to follow trend`,
+        desc4:`• Wait for gap up confirmation`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'exhaustion-gap', name:'Exhaustion Gap', type:'bear', tags:['trend','reversal'],
+        candles:[{o:44,h:48,l:43,c:47},{o:52,h:54,l:51,c:53},{o:53,h:55,l:52,c:54},{o:54,h:55,l:48,c:49}],
+        desc1:`Exhaustion Gap: gap up at the end of a trend, followed by reversal. Bearish signal.`,
+        desc2:`• Gap up after long trend\n• Followed by reversal candle`,
+        desc3:`• PUT after reversal confirmation`,
+        desc4:`• Hard to identify in real-time`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'island-cluster', name:'Island Cluster', type:'bear', tags:['trend','reversal'],
+        candles:[{o:44,h:48,l:43,c:47},{o:52,h:54,l:51,c:53},{o:53,h:55,l:52,c:54},{o:52,h:53,l:48,c:49}],
+        desc1:`Island Cluster: multiple candles isolated by gaps on both sides. Bearish reversal.`,
+        desc2:`• Cluster of candles\n• Gaps on both sides`,
+        desc3:`• PUT on gap-down`,
+        desc4:`• Rare`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'gap-fill-bull', name:'Gap Fill Bullish', type:'bull', tags:['trend','reversal'],
+        candles:[{o:56,h:57,l:50,c:51},{o:50,h:52,l:48,c:49},{o:49,h:53,l:48,c:52}],
+        desc1:`Gap Fill Bullish: gap down filled by later price action. Bullish reversal.`,
+        desc2:`• Gap down\n• Later filled by price`,
+        desc3:`• CALL after gap fill`,
+        desc4:`• Confirm with candle close`,
+        desc5:`60-68%.`
+    },
+    {
+        id:'gap-fill-bear', name:'Gap Fill Bearish', type:'bear', tags:['trend','reversal'],
+        candles:[{o:44,h:50,l:43,c:49},{o:50,h:52,l:49,c:50},{o:50,h:51,l:47,c:48}],
+        desc1:`Gap Fill Bearish: gap up filled by later price action. Bearish reversal.`,
+        desc2:`• Gap up\n• Later filled`,
+        desc3:`• PUT after gap fill`,
+        desc4:`• Confirm`,
+        desc5:`60-68%.`
+    },
+    {
+        id:'opening-marubozu-bull', name:'Opening Marubozu Bullish', type:'bull', tags:['candle','trend'],
+        candles:[{o:42,h:56,l:42,c:55}],
+        desc1:`Opening Marubozu: a candle with no LOWER wick — open equals low. Bullish.`,
+        desc2:`• No lower wick\n• Open = Low`,
+        desc3:`• CALL continuation`,
+        desc4:`• Trend continuation`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'opening-marubozu-bear', name:'Opening Marubozu Bearish', type:'bear', tags:['candle','trend'],
+        candles:[{o:56,h:56,l:42,c:43}],
+        desc1:`Opening Marubozu Bearish: no upper wick — open equals high.`,
+        desc2:`• No upper wick\n• Open = High`,
+        desc3:`• PUT continuation`,
+        desc4:`• Trend continuation`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'closing-marubozu-bull', name:'Closing Marubozu Bullish', type:'bull', tags:['candle','trend'],
+        candles:[{o:42,h:56,l:42,c:56}],
+        desc1:`Closing Marubozu Bullish: no upper wick — close equals high.`,
+        desc2:`• No upper wick\n• Close = High`,
+        desc3:`• CALL continuation`,
+        desc4:`• Trend continuation`,
+        desc5:`65-72%.`
+    },
+
+    /* ============== 71-80: SUPPORT/RESISTANCE PATTERNS ============== */
+    {
+        id:'support-bounce', name:'Support Bounce', type:'bull', tags:['trend','reversal'],
+        candles:[{o:56,h:57,l:50,c:51},{o:51,h:53,l:50,c:52},{o:52,h:56,l:51,c:55}],
+        desc1:`Support Bounce: price bounces off a horizontal support line. Bullish reversal signal.`,
+        desc2:`• Price touches support\n• Bounces up`,
+        desc3:`• CALL when bounce confirmed`,
+        desc4:`• Support must be clear`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'resistance-rejection', name:'Resistance Rejection', type:'bear', tags:['trend','reversal'],
+        candles:[{o:46,h:52,l:45,c:51},{o:51,h:52,l:50,c:51},{o:51,h:52,l:46,c:47}],
+        desc1:`Resistance Rejection: price rejects at a resistance level and turns down. Bearish.`,
+        desc2:`• Price at resistance\n• Rejection candlestick`,
+        desc3:`• PUT after rejection confirmed`,
+        desc4:`• Resistance must be clear`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'breakout-resistance', name:'Resistance Breakout', type:'bull', tags:['trend','breakout'],
+        candles:[{o:46,h:50,l:45,c:49},{o:49,h:51,l:48,c:50},{o:50,h:56,l:50,c:55}],
+        desc1:`Resistance Breakout: price breaks above a horizontal resistance with momentum. Bullish continuation.`,
+        desc2:`• Price broke resistance\n• Strong close above`,
+        desc3:`• CALL on breakout`,
+        desc4:`• Confirm with volume`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'breakdown-support', name:'Support Breakdown', type:'bear', tags:['trend','breakout'],
+        candles:[{o:54,h:55,l:50,c:51},{o:51,h:52,l:50,c:50.5},{o:50,h:51,l:44,c:45}],
+        desc1:`Support Breakdown: price breaks below support with momentum. Bearish continuation.`,
+        desc2:`• Support broken\n• Strong close below`,
+        desc3:`• PUT on breakdown`,
+        desc4:`• Confirm with volume`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'retest-support', name:'Support Retest', type:'bull', tags:['trend','continuation'],
+        candles:[{o:48,h:52,l:47,c:51},{o:51,h:52,l:48,c:49},{o:49,h:54,l:48,c:53}],
+        desc1:`Support Retest: after breakout, price comes back to test the broken resistance as new support, then bounces.`,
+        desc2:`• Breakout up\n• Retest old resistance as support\n• Bounce up`,
+        desc3:`• CALL on retest bounce`,
+        desc4:`• Confirm bounce`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'retest-resistance', name:'Resistance Retest', type:'bear', tags:['trend','continuation'],
+        candles:[{o:52,h:53,l:48,c:49},{o:49,h:52,l:48,c:51},{o:51,h:52,l:46,c:47}],
+        desc1:`Resistance Retest: after breakdown, price retests broken support as new resistance, then falls.`,
+        desc2:`• Breakdown\n• Retest as resistance\n• Fall down`,
+        desc3:`• PUT on retest rejection`,
+        desc4:`• Confirm`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'trendline-bounce-bull', name:'Bullish Trendline Bounce', type:'bull', tags:['trend','continuation'],
+        candles:[{o:44,h:48,l:43,c:47},{o:47,h:50,l:46,c:49},{o:49,h:50,l:46,c:47},{o:47,h:52,l:47,c:51}],
+        desc1:`Price bounces off an ascending trendline. Bullish continuation.`,
+        desc2:`• Rising trendline\n• Touch and bounce`,
+        desc3:`• CALL on bounce`,
+        desc4:`• Trendline must be clear`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'trendline-bounce-bear', name:'Bearish Trendline Bounce', type:'bear', tags:['trend','continuation'],
+        candles:[{o:56,h:57,l:52,c:53},{o:53,h:54,l:50,c:51},{o:51,h:54,l:50,c:53},{o:53,h:54,l:48,c:49}],
+        desc1:`Price bounces off a descending trendline. Bearish continuation.`,
+        desc2:`• Falling trendline\n• Touch and bounce down`,
+        desc3:`• PUT on bounce`,
+        desc4:`• Trendline must be clear`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'trendline-break-bull', name:'Bullish Trendline Break', type:'bull', tags:['trend','breakout'],
+        candles:[{o:56,h:57,l:52,c:53},{o:53,h:54,l:50,c:51},{o:51,h:55,l:50,c:54},{o:54,h:58,l:53,c:57}],
+        desc1:`Price breaks ABOVE a descending trendline. Bullish reversal signal.`,
+        desc2:`• Downtrend\n• Break above trendline`,
+        desc3:`• CALL on break`,
+        desc4:`• Wait for close above`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'trendline-break-bear', name:'Bearish Trendline Break', type:'bear', tags:['trend','breakout'],
+        candles:[{o:44,h:48,l:43,c:47},{o:47,h:50,l:46,c:49},{o:49,h:50,l:45,c:46},{o:46,h:47,l:41,c:42}],
+        desc1:`Price breaks BELOW an ascending trendline. Bearish reversal.`,
+        desc2:`• Uptrend\n• Break below trendline`,
+        desc3:`• PUT on break`,
+        desc4:`• Wait for close below`,
+        desc5:`70-75%.`
+    },
+
+    /* ============== 81-90: MULTI-CANDLE & HYBRID ============== */
+    {
+        id:'three-line-strike-bull', name:'Three Line Strike Bullish', type:'bull', tags:['trend','continuation'],
+        candles:[{o:44,h:48,l:43,c:47},{o:47,h:51,l:46,c:50},{o:50,h:54,l:49,c:53},{o:52,h:55,l:51,c:54}],
+        desc1:`Three Line Strike Bullish: three rising candles followed by a large green candle that engulfs all three. Continuation.`,
+        desc2:`• Three small green candles\n• Fourth green candle engulfs all`,
+        desc3:`• CALL on fourth close`,
+        desc4:`• Wait for strike candle close`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'three-line-strike-bear', name:'Three Line Strike Bearish', type:'bear', tags:['trend','continuation'],
+        candles:[{o:56,h:57,l:52,c:53},{o:53,h:54,l:50,c:51},{o:51,h:52,l:48,c:49},{o:49,h:50,l:45,c:46}],
+        desc1:`Three Line Strike Bearish: three falling candles followed by a large red candle that engulfs all three.`,
+        desc2:`• Three red candles\n• Fourth red engulfs all`,
+        desc3:`• PUT on fourth close`,
+        desc4:`• Wait for close`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'concealing-baby-bull', name:'Concealing Baby Swallow', type:'bull', tags:['candle','reversal'],
+        candles:[{o:52,h:53,l:48,c:49},{o:49,h:50,l:48,c:49.5},{o:49.5,h:50,l:48,c:49},{o:48,h:54,l:47,c:53}],
+        desc1:`Concealing Baby Swallow: rare four-candle pattern at the bottom. Bullish reversal.`,
+        desc2:`• Two falling black marubozus\n• Small candle inside\n• Bullish engulfing candle`,
+        desc3:`• CALL after final candle`,
+        desc4:`• Rare`,
+        desc5:`75%+.`
+    },
+    {
+        id:'unique-three-river', name:'Unique Three River Bottom', type:'bull', tags:['candle','reversal'],
+        candles:[{o:55,h:56,l:50,c:51},{o:51,h:52,l:48,c:50},{o:50,h:53,l:49,c:52}],
+        desc1:`Unique Three River: red candle, then a candle making new low but closing green, then a small green candle. Bullish reversal.`,
+        desc2:`• Red candle\n• Candle with new low but green close\n• Small green candle`,
+        desc3:`• CALL after pattern`,
+        desc4:`• Rare`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'stick-sandwich', name:'Stick Sandwich', type:'bull', tags:['candle','reversal'],
+        candles:[{o:52,h:53,l:48,c:49},{o:49,h:52,l:48,c:51},{o:51,h:52,l:47,c:49}],
+        desc1:`Stick Sandwich: two red candles with the same close separated by a green candle. Bullish reversal.`,
+        desc2:`• Red candle\n• Green candle\n• Red candle with same close as first red`,
+        desc3:`• CALL after third candle`,
+        desc4:`• Closes must match`,
+        desc5:`65-70%.`
+    },
+    {
+        id:'three-mountains', name:'Three Mountains', type:'bear', tags:['trend','reversal'],
+        candles:[{o:42,h:52,l:41,c:50},{o:50,h:51,l:46,c:47},{o:47,h:52,l:47,c:50},{o:50,h:51,l:46,c:47},{o:47,h:52,l:47,c:50},{o:50,h:51,l:42,c:43}],
+        desc1:`Three Mountains (same as Triple Top): three peaks at same resistance. Bearish.`,
+        desc2:`• Three peaks\n• Same resistance level`,
+        desc3:`• PUT on breakdown`,
+        desc4:`• Confirm`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'three-rivers', name:'Three Rivers', type:'bull', tags:['trend','reversal'],
+        candles:[{o:58,h:59,l:48,c:50},{o:50,h:54,l:49,c:53},{o:53,h:54,l:48,c:50},{o:50,h:54,l:49,c:53},{o:53,h:54,l:48,c:50},{o:50,h:58,l:49,c:57}],
+        desc1:`Three Rivers (Triple Bottom): three troughs at same support. Bullish.`,
+        desc2:`• Three troughs\n• Same support`,
+        desc3:`• CALL on breakout`,
+        desc4:`• Confirm`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'bullish-mat-hold', name:'Bullish Mat Hold', type:'bull', tags:['trend','continuation'],
+        candles:[{o:44,h:50,l:43,c:49},{o:48,h:49,l:46,c:47},{o:47,h:48,l:45,c:46},{o:46,h:47,l:44,c:45},{o:45,h:53,l:44,c:52}],
+        desc1:`Bullish Mat Hold: strong green candle, three small pullbacks, then another breakout. Continuation.`,
+        desc2:`• Strong green\n• Three small reds\n• Strong green breakout`,
+        desc3:`• CALL on final green`,
+        desc4:`• Similar to Rising Three Methods`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'bearish-mat-hold', name:'Bearish Mat Hold', type:'bear', tags:['trend','continuation'],
+        candles:[{o:56,h:57,l:50,c:51},{o:52,h:54,l:51,c:53},{o:53,h:54,l:52,c:53.5},{o:53.5,h:55,l:53,c:54},{o:54,h:55,l:47,c:48}],
+        desc1:`Bearish Mat Hold: strong red, three small bounces, then another drop.`,
+        desc2:`• Strong red\n• Three small green\n• Strong red drop`,
+        desc3:`• PUT on final red`,
+        desc4:`• Similar to Falling Three Methods`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'advance-block', name:'Advance Block', type:'bear', tags:['trend','reversal'],
+        candles:[{o:44,h:50,l:43,c:49},{o:49,h:54,l:48,c:53},{o:53,h:56,l:52,c:55},{o:54,h:57,l:52,c:54.5}],
+        desc1:`Advance Block: three rising green candles with shrinking bodies, signaling weakening momentum. Bearish reversal.`,
+        desc2:`• Three green candles\n• Each body smaller\n• Growing upper wicks`,
+        desc3:`• PUT on fourth candle`,
+        desc4:`• Watch for reversal signals`,
+        desc5:`65-72%.`
+    },
+
+    /* ============== 91-100: FINAL SET ============== */
+    {
+        id:'belt-hold-bull', name:'Bullish Belt Hold', type:'bull', tags:['candle','reversal'],
+        candles:[{o:44,h:52,l:43,c:51}],
+        desc1:`Bullish Belt Hold: green candle opening at the low with no lower wick, then closing near the high. Bullish reversal.`,
+        desc2:`• Open at low\n• No lower wick\n• Large green body`,
+        desc3:`• CALL next candle`,
+        desc4:`• Confirm with trend context`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'belt-hold-bear', name:'Bearish Belt Hold', type:'bear', tags:['candle','reversal'],
+        candles:[{o:56,h:56,l:48,c:49}],
+        desc1:`Bearish Belt Hold: red candle opening at the high with no upper wick, closing near the low. Bearish.`,
+        desc2:`• Open at high\n• No upper wick\n• Large red body`,
+        desc3:`• PUT next candle`,
+        desc4:`• Confirm`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'bullish-side-by-side', name:'Bullish Side by Side', type:'bull', tags:['trend','continuation'],
+        candles:[{o:44,h:50,l:43,c:49},{o:49,h:52,l:48,c:51}],
+        desc1:`Bullish Side by Side: two green candles with similar size opening at the same level. Trend continuation.`,
+        desc2:`• Two similar green candles`,
+        desc3:`• CALL for continuation`,
+        desc4:`• Similar to gap but no gap`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'bearish-side-by-side', name:'Bearish Side by Side', type:'bear', tags:['trend','continuation'],
+        candles:[{o:56,h:57,l:50,c:51},{o:51,h:52,l:48,c:49}],
+        desc1:`Bearish Side by Side: two red candles opening at similar level. Bearish continuation.`,
+        desc2:`• Two similar red candles`,
+        desc3:`• PUT for continuation`,
+        desc4:`• Confirm`,
+        desc5:`65-72%.`
+    },
+    {
+        id:'separating-lines-bull', name:'Bullish Separating Lines', type:'bull', tags:['trend','continuation'],
+        candles:[{o:52,h:53,l:48,c:49},{o:49,h:54,l:48,c:53}],
+        desc1:`Bullish Separating Lines: a red candle followed by a green candle opening at the same open. Bullish continuation.`,
+        desc2:`• Red candle\n• Green opening at same open`,
+        desc3:`• CALL for continuation`,
+        desc4:`• Same opening required`,
+        desc5:`65-70%.`
+    },
+    {
+        id:'separating-lines-bear', name:'Bearish Separating Lines', type:'bear', tags:['trend','continuation'],
+        candles:[{o:48,h:53,l:47,c:52},{o:52,h:53,l:46,c:47}],
+        desc1:`Bearish Separating Lines: green candle followed by a red opening at same open. Bearish continuation.`,
+        desc2:`• Green candle\n• Red opens same`,
+        desc3:`• PUT for continuation`,
+        desc4:`• Same opening`,
+        desc5:`65-70%.`
+    },
+    {
+        id:'matching-low', name:'Matching Low', type:'bull', tags:['candle','reversal'],
+        candles:[{o:54,h:55,l:48,c:49},{o:49,h:52,l:48,c:51}],
+        desc1:`Matching Low: two red candles with the same low. Bullish reversal signal.`,
+        desc2:`• Two red candles\n• Same low`,
+        desc3:`• CALL after pattern`,
+        desc4:`• Lows must match`,
+        desc5:`60-68%.`
+    },
+    {
+        id:'homing-pigeon', name:'Homing Pigeon', type:'bull', tags:['candle','reversal'],
+        candles:[{o:56,h:57,l:48,c:49},{o:49,h:52,l:48,c:51}],
+        desc1:`Homing Pigeon: two red candles where the second is inside the first. Bullish reversal.`,
+        desc2:`• Two red candles\n• Second inside first`,
+        desc3:`• CALL after pattern`,
+        desc4:`• Similar to Harami but both red`,
+        desc5:`60-68%.`
+    },
+    {
+        id:'ladder-bottom', name:'Ladder Bottom', type:'bull', tags:['trend','reversal'],
+        candles:[{o:56,h:57,l:52,c:53},{o:53,h:54,l:50,c:51},{o:51,h:52,l:48,c:49},{o:49,h:50,l:46,c:47},{o:47,h:48,l:42,c:46}],
+        desc1:`Ladder Bottom: five falling candles where the last has a large lower wick. Bullish reversal.`,
+        desc2:`• Four red candles\n• Fifth has long lower wick`,
+        desc3:`• CALL after fifth candle`,
+        desc4:`• Confirm`,
+        desc5:`70-75%.`
+    },
+    {
+        id:'tower-bottom', name:'Tower Bottom', type:'bull', tags:['trend','reversal'],
+        candles:[{o:52,h:53,l:48,c:49},{o:49,h:50,l:45,c:46},{o:46,h:47,l:42,c:43},{o:42,h:46,l:42,c:45},{o:45,h:49,l:44,c:48},{o:48,h:52,l:47,c:51}],
+        desc1:`Tower Bottom: long red candle, small consolidation, long green candle. Bullish reversal.`,
+        desc2:`• Long red candle down\n• Small consolidation\n• Long green candle up`,
+        desc3:`• CALL after green tower`,
+        desc4:`• Towers must be tall`,
+        desc5:`70-75%.`
+    }
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let currentFilter = 'all';
+let currentSearch = '';
+
+/* ============================================================
+   CANVAS RENDERER
+   ============================================================ */
+function drawPatternOnCanvas(canvasEl, pattern, padding = 16) {
+    const c = canvasEl.getContext('2d');
+    const W = canvasEl.width;
+    const H = canvasEl.height;
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.clearRect(0, 0, W, H);
+    c.fillStyle = '#0d141e';
+    c.fillRect(0, 0, W, H);
+    const candles = pattern.candles;
+    const n = candles.length;
+    let minP = Infinity, maxP = -Infinity;
+    candles.forEach(cc => { if (cc.l < minP) minP = cc.l; if (cc.h > maxP) maxP = cc.h; });
+    const span = maxP - minP || 1;
+    minP -= span * 0.15;
+    maxP += span * 0.15;
+    const plotW = W - padding * 2;
+    const plotH = H - padding * 2;
+    const slotW = plotW / n;
+    const bodyW = Math.max(6, slotW * 0.55);
+    const yOf = p => padding + plotH - ((p - minP) / (maxP - minP)) * plotH;
+    const xOf = i => padding + i * slotW + slotW / 2;
+
+    c.strokeStyle = 'rgba(20,30,41,0.7)';
+    c.lineWidth = 1;
+    for (let i = 1; i < 4; i++) {
+        const y = Math.round(padding + (plotH / 4) * i) + 0.5;
+        c.beginPath(); c.moveTo(padding, y); c.lineTo(padding + plotW, y); c.stroke();
+    }
+    for (let i = 1; i < n; i++) {
+        const x = Math.round(padding + slotW * i) + 0.5;
+        c.strokeStyle = 'rgba(20,30,41,0.4)';
+        c.beginPath(); c.moveTo(x, padding); c.lineTo(x, padding + plotH); c.stroke();
+    }
+
+    candles.forEach((cc, i) => {
+        const x = xOf(i);
+        const up = cc.c >= cc.o;
+        const col = up ? '#00e676' : '#ff5252';
+        c.strokeStyle = col;
+        c.lineWidth = Math.max(1.2, W / 500);
+        c.beginPath();
+        c.moveTo(Math.round(x) + 0.5, yOf(cc.h));
+        c.lineTo(Math.round(x) + 0.5, yOf(cc.l));
+        c.stroke();
+        const yO = yOf(cc.o), yC = yOf(cc.c);
+        const top = Math.min(yO, yC);
+        const hgt = Math.max(Math.abs(yC - yO), 3);
+        c.fillStyle = col;
+        c.fillRect(x - bodyW / 2, top, bodyW, hgt);
+    });
+}
+
+/* ============================================================
+   RENDER GRID
+   ============================================================ */
+function matchesFilter(p) {
+    if (currentFilter !== 'all' && !p.tags.includes(currentFilter)) return false;
+    if (currentSearch) {
+        const q = currentSearch.toLowerCase().trim();
+        const hay = (p.name + ' ' + p.tags.join(' ') + ' ' + p.desc1).toLowerCase();
+        if (!hay.includes(q)) return false;
+    }
+    return true;
+}
+
+function renderGrid() {
+    const grid = document.getElementById('chartGrid');
+    grid.innerHTML = '';
+    const filtered = PATTERNS.filter(matchesFilter);
+
+    document.getElementById('statTotal').textContent = PATTERNS.length;
+    document.getElementById('statShowing').textContent = filtered.length;
+    document.getElementById('statBull').textContent = PATTERNS.filter(p => p.type === 'bull').length;
+    document.getElementById('statBear').textContent = PATTERNS.filter(p => p.type === 'bear').length;
+    document.getElementById('statNeutral').textContent = PATTERNS.filter(p => p.type === 'neutral').length;
+    document.getElementById('chartCount').textContent = filtered.length + ' / ' + PATTERNS.length + ' charts';
+
+    if (!filtered.length) {
+        grid.innerHTML = `
+            <div class="no-result">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+                <div>No patterns match your search.</div>
+            </div>`;
+        return;
+    }
+
+    filtered.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'chart-card';
+
+        const badgeClass = p.type === 'bull' ? 'bull' : p.type === 'bear' ? 'bear' : 'neutral';
+        const badgeText = p.type === 'bull' ? '▲ BULLISH' : p.type === 'bear' ? '▼ BEARISH' : '◆ NEUTRAL';
+
+        card.innerHTML = `
+            <div class="chart-card-header">
+                <div class="chart-card-num">#${String(PATTERNS.indexOf(p) + 1).padStart(3, '0')}</div>
+                <div class="chart-card-badge ${badgeClass}">${badgeText}</div>
+            </div>
+            <div class="chart-card-title">${p.name}</div>
+            <div class="chart-card-sub">${p.desc1.split('.')[0]}.</div>
+            <div class="chart-card-canvas-wrap">
+                <canvas width="600" height="240"></canvas>
+            </div>
+            <div class="chart-card-footer">
+                <div class="chart-card-tag">${p.tags.slice(0, 2).join(' • ')}</div>
+                <div class="chart-card-open">
+                    Learn
+                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+            </div>
+        `;
+
+        card.addEventListener('click', () => openDetail(p));
+        grid.appendChild(card);
+
+        const cvs = card.querySelector('canvas');
+        requestAnimationFrame(() => drawPatternOnCanvas(cvs, p, 14));
+    });
+}
+
+/* ============================================================
+   DETAIL MODAL
+   ============================================================ */
+function openDetail(p) {
+    const idx = PATTERNS.indexOf(p) + 1;
+    const badgeClass = p.type === 'bull' ? 'bull' : p.type === 'bear' ? 'bear' : 'neutral';
+    const badgeText = p.type === 'bull' ? '▲ BULLISH SIGNAL' : p.type === 'bear' ? '▼ BEARISH SIGNAL' : '◆ NEUTRAL / INDECISION';
+
+    document.getElementById('dNum').textContent = 'Pattern #' + String(idx).padStart(3, '0');
+    document.getElementById('dTitle').textContent = p.name;
+    const badgeEl = document.getElementById('dBadge');
+    badgeEl.className = 'detail-badge ' + badgeClass;
+    badgeEl.textContent = badgeText;
+
+    document.getElementById('dDesc1').textContent = p.desc1;
+    document.getElementById('dDesc2').textContent = p.desc2;
+    document.getElementById('dDesc3').textContent = p.desc3;
+    document.getElementById('dDesc4').textContent = p.desc4;
+    document.getElementById('dDesc5').textContent = p.desc5;
+
+    const sec3 = document.getElementById('dSection3');
+    sec3.className = 'detail-section-title';
+    if (p.type === 'bear') sec3.classList.add('bear');
+    if (p.type === 'neutral') sec3.classList.add('warn');
+
+    document.getElementById('dTags').innerHTML = p.tags.map(t => `<div class="detail-tag">${t}</div>`).join('');
+
+    document.getElementById('detailModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+
+    requestAnimationFrame(() => {
+        const big = document.getElementById('detailCanvas');
+        big.width = 960;
+        big.height = 480;
+        drawPatternOnCanvas(big, p, 24);
+    });
+}
+
+function closeDetail() {
+    document.getElementById('detailModal').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+document.getElementById('detailModal').addEventListener('click', (e) => {
+    if (e.target.id === 'detailModal') closeDetail();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDetail();
+});
+
+/* ============================================================
+   FILTERS + SEARCH
+   ============================================================ */
+document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        currentFilter = chip.dataset.filter;
+        renderGrid();
+    });
+});
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    currentSearch = e.target.value;
+    renderGrid();
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderGrid();
+</script>
+</body>
+</html>
