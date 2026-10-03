@@ -7,7 +7,7 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; }
 body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; position:relative; }
-.header { height:55px; background-color:#17212d; display:flex; align-items:center; justify-content:space-between; padding:0 12px; border-bottom:1px solid #233142; }
+.header { height:55px; background-color:#17212d; display:flex; align-items:center; justify-content:space-between; padding:0 12px; border-bottom:1px solid #233142; position:relative; z-index:20; }
 .header-left { display:flex; align-items:center; gap:10px; }
 .icon-btn { background:#202c3a; border:none; color:#fff; width:38px; height:38px; border-radius:6px; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 .account-info { display:flex; flex-direction:column; }
@@ -16,12 +16,99 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
 .header-right { display:flex; align-items:center; gap:8px; }
 .online-badge { background:#202c3a; border:1px solid #00e676; padding:5px 10px; border-radius:20px; font-size:11px; color:#8a9ba8; display:flex; align-items:center; gap:5px; }
 .online-dot { width:6px; height:6px; background:#00e676; border-radius:50%; box-shadow:0 0 5px #00e676; }
-.asset-bar-container { height:45px; background:#131b26; display:flex; align-items:center; border-bottom:1px solid #1c2836; padding:0 8px; overflow-x:auto; white-space:nowrap; scrollbar-width:none; }
-.asset-bar-container::-webkit-scrollbar { display:none; }
-.asset-chip { display:inline-flex; align-items:center; gap:6px; background:#17212d; border:1px solid #233142; padding:6px 12px; border-radius:20px; font-size:12px; margin-right:6px; cursor:pointer; color:#8a9ba8; transition:all 0.2s; }
-.asset-chip.active { background:#202c3a; border-color:#00e676; color:#fff; font-weight:bold; }
-.asset-chip:active { transform:scale(0.96); }
-.main-viewport { position:relative; height:calc(100vh - 100px); width:100%; overflow:hidden; display:flex; flex-direction:column; }
+
+/* ============ ASSET SELECTOR (single button) ============ */
+.asset-bar-container { height:55px; background:#131b26; display:flex; align-items:center; border-bottom:1px solid #1c2836; padding:0 12px; position:relative; z-index:15; }
+.asset-selector {
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    background:#17212d;
+    border:1px solid #00e676;
+    padding:8px 14px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:700;
+    color:#fff;
+    cursor:pointer;
+    transition:all 0.2s;
+    position:relative;
+    min-width:180px;
+}
+.asset-selector:active { transform:scale(0.98); }
+.asset-selector .asset-flags { display:flex; align-items:center; gap:4px; font-size:16px; }
+.asset-selector .asset-label { flex:1; text-align:left; }
+.asset-selector .chevron-down {
+    width:14px;
+    height:14px;
+    stroke:#00e676;
+    fill:none;
+    stroke-width:2.5;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    transition:transform 0.25s ease;
+}
+.asset-selector.open .chevron-down { transform:rotate(180deg); }
+.asset-selector .ret-badge {
+    font-size:9px;
+    font-weight:800;
+    color:#00e676;
+    background:rgba(0,230,118,0.1);
+    padding:2px 6px;
+    border-radius:10px;
+    letter-spacing:0.3px;
+}
+
+/* ============ ASSET DRAWER (opens below selector) ============ */
+.asset-drawer {
+    position:absolute;
+    top:100px;
+    left:0;
+    right:0;
+    background:#131b26;
+    border-bottom:1px solid #233142;
+    z-index:14;
+    max-height:0;
+    overflow:hidden;
+    transition:max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+}
+.asset-drawer.open { max-height:400px; }
+.asset-drawer-inner { padding:12px; display:flex; flex-direction:column; gap:8px; }
+
+.asset-item {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:#17212d;
+    border:1px solid #233142;
+    border-radius:10px;
+    padding:12px 14px;
+    cursor:pointer;
+    transition:all 0.15s;
+}
+.asset-item:hover { border-color:rgba(0,230,118,0.35); background:#1a2434; }
+.asset-item.active {
+    border-color:#00e676;
+    background:rgba(0,230,118,0.06);
+}
+.asset-item .asset-item-flags { font-size:22px; display:flex; gap:4px; flex-shrink:0; }
+.asset-item .asset-item-info { flex:1; }
+.asset-item .asset-item-name { font-size:14px; font-weight:700; color:#fff; }
+.asset-item .asset-item-sub { font-size:11px; color:#8a9ba8; margin-top:2px; }
+.asset-item .asset-item-return {
+    font-size:10px;
+    font-weight:800;
+    color:#00e676;
+    background:rgba(0,230,118,0.1);
+    padding:4px 10px;
+    border-radius:20px;
+    letter-spacing:0.5px;
+    flex-shrink:0;
+}
+
+/* ============ MAIN VIEWPORT ============ */
+.main-viewport { position:relative; height:calc(100vh - 110px); width:100%; overflow:hidden; display:flex; flex-direction:column; }
 .drawer-left, .drawer-right { position:absolute; top:0; width:85%; max-width:320px; height:100%; background:#131b26; z-index:100; transition:all 0.3s ease; padding:15px; overflow-y:auto; }
 .drawer-left { left:-100%; border-right:1px solid #233142; }
 .drawer-left.active { left:0; }
@@ -117,6 +204,7 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
 
 .backdrop { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:90; display:none; }
 .backdrop.active { display:block; }
+.backdrop.asset-backdrop { z-index:13; }
 .chart-container { flex:1; position:relative; background:#0d141e; overflow:hidden; }
 #tradingChart { width:100%; height:100%; display:block; touch-action:none; cursor:grab; }
 #tradingChart.dragging { cursor:grabbing; }
@@ -202,9 +290,7 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
 .cs-input-bar button:disabled { background:#334155; color:#64748b; cursor:not-allowed; }
 .cs-input-bar button svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 
-/* ============================================================
-   LOGOUT CONFIRM MODAL
-   ============================================================ */
+/* LOGOUT MODAL */
 .logout-overlay {
     position: fixed;
     inset: 0;
@@ -218,7 +304,6 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
     padding: 20px;
 }
 .logout-overlay.show { display: flex; }
-
 .logout-card {
     background: #131b26;
     border: 1px solid #233142;
@@ -233,7 +318,6 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
     from { opacity: 0; transform: translateY(24px) scale(0.94); }
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
-
 .logout-icon {
     width: 60px;
     height: 60px;
@@ -254,7 +338,6 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-
 .logout-title {
     font-size: 18px;
     font-weight: 800;
@@ -269,7 +352,6 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
     margin-bottom: 22px;
 }
 .logout-text strong { color: #fff; font-weight: 700; }
-
 .logout-actions {
     display: flex;
     gap: 10px;
@@ -301,9 +383,7 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
     background: linear-gradient(135deg, #ff5252 0%, #c62828 100%);
     color: #fff;
 }
-.logout-btn-yes:hover {
-    filter: brightness(1.08);
-}
+.logout-btn-yes:hover { filter: brightness(1.08); }
 .logout-btn-yes:active { transform: scale(0.98); }
 </style>
 </head>
@@ -330,9 +410,25 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
         <button class="icon-btn" id="open-right-btn">⟨</button>
     </div>
 </div>
-<div class="asset-bar-container" id="asset-bar"></div>
+
+<!-- ============ SINGLE ASSET SELECTOR ============ -->
+<div class="asset-bar-container">
+    <div class="asset-selector" id="assetSelector">
+        <div class="asset-flags" id="assetSelectorFlags">🇮🇳🇺🇸</div>
+        <div class="asset-label" id="assetSelectorLabel">INR / USD</div>
+        <span class="ret-badge" id="assetSelectorBadge">85%</span>
+        <svg class="chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+</div>
+
+<!-- ============ ASSET DRAWER ============ -->
+<div class="asset-drawer" id="assetDrawer">
+    <div class="asset-drawer-inner" id="assetDrawerInner"></div>
+</div>
+
 <div class="main-viewport">
     <div class="backdrop" id="backdrop"></div>
+    <div class="backdrop asset-backdrop" id="assetBackdrop"></div>
     <div class="chart-container" id="chart-container">
         <div class="zoom-indicator" id="zoom-indicator">1.0×</div>
         <div class="status-bar-overlay">
@@ -877,7 +973,7 @@ document.getElementById('tipsClose').addEventListener('click', () => tipsModal.c
 });
 
 /* ============================================================
-   ONLINE COUNT — receives from Firebase module
+   ONLINE COUNT
    ============================================================ */
 window.updateOnlineCount = function(count) {
     const el = document.getElementById('online-count');
@@ -941,21 +1037,75 @@ const ASSETS = [
     { id:'aud_usd', label:'AUD / USD', flag:'🇦🇺🇺🇸', prdBase:4219063758n, seed:5, basePrice: 78.40, vol:1.05 },
 ];
 let activeAsset = ASSETS[0];
-const assetBar = document.getElementById('asset-bar');
-function buildAssetChips() {
-    assetBar.innerHTML = '';
+
+/* ============ Asset Selector (single button + drawer) ============ */
+const assetSelector = document.getElementById('assetSelector');
+const assetDrawer = document.getElementById('assetDrawer');
+const assetDrawerInner = document.getElementById('assetDrawerInner');
+const assetBackdrop = document.getElementById('assetBackdrop');
+const assetSelectorFlags = document.getElementById('assetSelectorFlags');
+const assetSelectorLabel = document.getElementById('assetSelectorLabel');
+const assetSelectorBadge = document.getElementById('assetSelectorBadge');
+
+function buildAssetDrawer() {
+    assetDrawerInner.innerHTML = '';
     ASSETS.forEach(a => {
-        const chip = document.createElement('div');
-        chip.className = 'asset-chip' + (a.id === activeAsset.id ? ' active' : '');
-        chip.dataset.asset = a.id;
-        chip.innerHTML = `<span>${a.flag}</span> ${a.label} (85%)`;
-        chip.addEventListener('click', () => setActiveAsset(a.id));
-        assetBar.appendChild(chip);
+        const item = document.createElement('div');
+        item.className = 'asset-item' + (a.id === activeAsset.id ? ' active' : '');
+        item.dataset.asset = a.id;
+        item.innerHTML = `
+            <div class="asset-item-flags">${a.flag.split('').slice(0,2).map(c => c).join('')}</div>
+            <div class="asset-item-info">
+                <div class="asset-item-name">${a.label}</div>
+                <div class="asset-item-sub">Binary Options • 30s</div>
+            </div>
+            <div class="asset-item-return">85%</div>
+        `;
+        item.addEventListener('click', () => {
+            setActiveAsset(a.id);
+            closeAssetDrawer();
+        });
+        assetDrawerInner.appendChild(item);
     });
 }
-function refreshAssetChipActive() { assetBar.querySelectorAll('.asset-chip').forEach(el => el.classList.toggle('active', el.dataset.asset === activeAsset.id)); }
-buildAssetChips();
 
+function refreshAssetSelectorUI() {
+    // Update the top button
+    assetSelectorFlags.textContent = activeAsset.flag;
+    assetSelectorLabel.textContent = activeAsset.label;
+    assetSelectorBadge.textContent = '85%';
+
+    // Update the drawer active state
+    assetDrawerInner.querySelectorAll('.asset-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.asset === activeAsset.id);
+    });
+}
+
+function openAssetDrawer() {
+    assetDrawer.classList.add('open');
+    assetSelector.classList.add('open');
+    assetBackdrop.classList.add('active');
+}
+function closeAssetDrawer() {
+    assetDrawer.classList.remove('open');
+    assetSelector.classList.remove('open');
+    assetBackdrop.classList.remove('active');
+}
+function toggleAssetDrawer() {
+    if (assetDrawer.classList.contains('open')) closeAssetDrawer();
+    else openAssetDrawer();
+}
+
+assetSelector.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleAssetDrawer();
+});
+assetBackdrop.addEventListener('click', closeAssetDrawer);
+
+buildAssetDrawer();
+refreshAssetSelectorUI();
+
+/* ============ Chart Engine ============ */
 const canvas = document.getElementById('tradingChart');
 const ctx = canvas.getContext('2d');
 const BASE_TIMESTAMP = 1700000000000;
@@ -1235,7 +1385,7 @@ function setActiveAsset(id) {
     panPixels = 0;
     initAssetStore(activeAsset);
     warmupAsset(activeAsset);
-    refreshAssetChipActive();
+    refreshAssetSelectorUI();
     showToast(`Switched to ${a.label}`, 'success');
 }
 function warmupAsset(asset) {
@@ -1562,7 +1712,6 @@ const db = getDatabase(userApp);
 let currentPhone = null;
 let userUnsub = null;
 
-/* 1. LOAD USER FROM FIREBASE */
 async function loadUserFromFirebase() {
     try {
         const active = JSON.parse(localStorage.getItem('activeUser') || 'null');
@@ -1595,7 +1744,6 @@ async function loadUserFromFirebase() {
 }
 loadUserFromFirebase();
 
-/* 2. LIVE LISTENER */
 function attachUserListener() {
     if (!currentPhone) return;
     if (userUnsub) { userUnsub(); userUnsub = null; }
@@ -1630,7 +1778,6 @@ loadUserFromFirebase().then(() => {
     }
 });
 
-/* 3. SAVE USER */
 window.addEventListener('vertex:save-user', async (e) => {
     try {
         const d = e.detail;
@@ -1643,13 +1790,11 @@ window.addEventListener('vertex:save-user', async (e) => {
     } catch(err) { console.error('[User] save error:', err); }
 });
 
-/* 4. FORCED DIRECTIONS */
 onValue(ref(db, 'forcedDirections'), (snap) => {
     const data = snap.val() || {};
     window.dispatchEvent(new CustomEvent('vertex:forced', { detail: data }));
 }, (err) => console.error('[Force] error:', err));
 
-/* 5. PERIOD BETS */
 onValue(ref(db, 'periodBets'), (snap) => {
     const data = snap.val() || {};
     window.dispatchEvent(new CustomEvent('vertex:bets', { detail: data }));
@@ -1667,7 +1812,6 @@ window.addEventListener('vertex:record-bet', async (e) => {
     } catch(err) { console.error('[Bet] save error:', err); }
 });
 
-/* 6. TRANSACTIONS */
 async function loadUserTx() {
     try {
         const cur = window.getUserData();
@@ -1692,12 +1836,7 @@ window.addEventListener('vertex:add-tx', async (e) => {
     } catch(err) { console.error('[Tx] add error:', err); }
 });
 
-/* ============================================================
-   7. ONLINE COUNT — Firebase-backed (admin override + auto fluctuate)
-   Admin path: /config/online_count
-   If value > 0 → show that everywhere (+ tiny fluctuation for life)
-   If value = 0 or missing → auto mode (4285 ± 15 every 3s, synced)
-   ============================================================ */
+/* ONLINE COUNT */
 const ONLINE_BASE = 4285;
 let adminOnlineValue = 0;
 
@@ -1714,7 +1853,6 @@ function getAutoOnline() {
 function applyOnline() {
     let val;
     if (adminOnlineValue > 0) {
-        // Admin value + tiny time-based fluctuation
         const bucket = Math.floor(Date.now() / 3000);
         const r = Math.sin(bucket * 45.123) * 5432.1234;
         const frac = r - Math.floor(r);
@@ -1730,7 +1868,6 @@ function applyOnline() {
 applyOnline();
 setInterval(applyOnline, 3000);
 
-/* Listen for admin override */
 onValue(ref(db, 'config/online_count'), (snap) => {
     const v = parseInt(snap.val(), 10);
     if (!isNaN(v) && v > 0) {
@@ -1743,7 +1880,6 @@ onValue(ref(db, 'config/online_count'), (snap) => {
     console.warn('[Online] config read error:', err);
 });
 
-/* Presence registration (kept for future use) */
 let sessionId = null;
 try {
     sessionId = sessionStorage.getItem('vertex_session_id');
