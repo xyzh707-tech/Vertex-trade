@@ -1043,11 +1043,11 @@
         <div class="form-group">
             <label>Amount (₹)</label>
             <div class="input-box">
-                <input type="number" id="wdAmount" class="form-control" placeholder="Enter amount" min="500" max="10000000" step="1">
+                <input type="number" id="wdAmount" class="form-control" placeholder="Enter amount" min="110" max="10000000" step="1">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M15 9.5H10.5a1.5 1.5 0 0 0 0 3h3a1.5 1.5 0 0 1 0 3H9"/></svg>
             </div>
             <div class="hint-text">
-                <span>Min: ₹500.00</span>
+                <span>Min: ₹110.00</span>
                 <span>Max: ₹1,00,00,000.00</span>
             </div>
         </div>
@@ -1241,7 +1241,7 @@
         const db = getDatabase(app);
 
         const WITHDRAW_FEE_PCT = 2;
-        const MIN_WITHDRAW = 500;
+        const MIN_WITHDRAW = 110;
         const MAX_WITHDRAW = 10000000;
 
         /* --- Clean Shield Logo --- */
