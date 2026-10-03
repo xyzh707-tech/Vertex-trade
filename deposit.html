@@ -998,6 +998,49 @@
         }
         .qr-step strong { color: #fff; font-weight: 600; }
 
+        /* ========== UPI APP BUTTONS (NEW — REAL LOGOS) ========== */
+        .qr-upi-apps {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .upi-app-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-2);
+            border-radius: 10px;
+            padding: 10px 4px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .upi-app-btn:hover {
+            border-color: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.06);
+        }
+        .upi-app-btn:active {
+            transform: scale(0.96);
+        }
+        .upi-app-btn img {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: block;
+            object-fit: contain;
+            background: #ffffff;
+            padding: 2px;
+        }
+        .upi-app-btn span {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
         /* ============================================================
            SUCCESS MODAL
            ============================================================ */
@@ -1343,7 +1386,7 @@
             <div class="qr-detail-row">
                 <div class="qr-detail-left">
                     <span class="qr-detail-lbl">UPI ID</span>
-                    <span class="qr-detail-val" id="qrUpiId">fbnanbspt@ptyes</span>
+                    <span class="qr-detail-val" id="qrUpiId">—</span>
                 </div>
                 <button class="qr-copy" id="qrCopyUpi">
                     <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -1360,6 +1403,26 @@
                     <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     Copy
                 </button>
+            </div>
+
+            <!-- ========== UPI APP BUTTONS (REAL LOGOS) ========== -->
+            <div class="qr-upi-apps">
+                <div class="upi-app-btn" data-app="paytm" onclick="openUpiApp('paytm')">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/24/Paytm_Logo_%28standalone%29.svg" alt="Paytm">
+                    <span>Paytm</span>
+                </div>
+                <div class="upi-app-btn" data-app="gpay" onclick="openUpiApp('gpay')">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" alt="GPay">
+                    <span>GPay</span>
+                </div>
+                <div class="upi-app-btn" data-app="phonepe" onclick="openUpiApp('phonepe')">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/71/PhonePe_Logo.svg" alt="PhonePe">
+                    <span>PhonePe</span>
+                </div>
+                <div class="upi-app-btn" data-app="navi" onclick="openUpiApp('navi')">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/Navi_Logo.svg" alt="Navi UPI">
+                    <span>Navi UPI</span>
+                </div>
             </div>
 
             <div class="qr-timer">
@@ -1385,7 +1448,7 @@
                 </div>
                 <div class="qr-step">
                     <span class="qr-step-num">3</span>
-                    <span>Verify UPI ID <strong>fbnanbspt@ptyes</strong> and the amount.</span>
+                    <span>Verify UPI ID <strong id="qrStepUpi">—</strong> and the amount.</span>
                 </div>
                 <div class="qr-step">
                     <span class="qr-step-num">4</span>
@@ -1442,9 +1505,18 @@
         /* ============================================================
            CONFIG
            ============================================================ */
-        const UPI_ID = "fbnanbspt@ptyes";
+        // Pool of UPI IDs — one random UPI ID is picked per deposit
+        const UPI_POOL = [
+            "singh43g@fam",
+            "mayur78@fam",
+            "mdmsbsn@ptyes",
+            "fbnanbspt@ptyes"
+        ];
         const UPI_NAME = "VERTEX";
         const BONUS_PERCENT = 5;
+
+        // Currently selected UPI for the active deposit session
+        let currentUpiId = UPI_POOL[Math.floor(Math.random() * UPI_POOL.length)];
 
         const RATES = {
             '₹': 1,
@@ -1551,7 +1623,7 @@
         }
 
         /* ============================================================
-           PROCESS DEPOSIT
+           PROCESS DEPOSIT — picks a fresh random UPI per session
            ============================================================ */
         function processDeposit() {
             const amt = parseFloat(document.getElementById('finalAmt').value);
@@ -1561,6 +1633,9 @@
             if (currentSymbol !== '₹' && amt < currentMin) {
                 showMsg(`Minimum deposit is ${currentSymbol}${currentMin}`, 'error'); return;
             }
+
+            // Randomly pick a new UPI from the pool for every deposit attempt
+            currentUpiId = UPI_POOL[Math.floor(Math.random() * UPI_POOL.length)];
 
             const rate = RATES[currentSymbol] || 1;
             const inrFinal = Math.round((currentSymbol === '₹' ? amt : amt * rate) * 100) / 100;
@@ -1574,17 +1649,17 @@
                 bonus: bonusAmt,
                 totalCredit: totalCredit,
                 method: currentMethod.toUpperCase(),
-                upiId: UPI_ID,
+                upiId: currentUpiId,
                 rate: rate
             };
 
-            openQrModal(amt, currentSymbol, inrFinal, rate, bonusAmt, totalCredit);
+            openQrModal(amt, currentSymbol, inrFinal, rate, bonusAmt, totalCredit, currentUpiId);
         }
 
         /* ============================================================
            OPEN QR MODAL
            ============================================================ */
-        function openQrModal(amt, symbol, inrFinal, rate, bonusAmt, totalCredit) {
+        function openQrModal(amt, symbol, inrFinal, rate, bonusAmt, totalCredit, upiId) {
             const overlay = document.getElementById('qrOverlay');
             const amtValueEl = document.getElementById('qrAmtValue');
             const amtInrEl = document.getElementById('qrAmtInr');
@@ -1594,6 +1669,10 @@
 
             document.getElementById('qrBonusVal').textContent = '+₹' + bonusAmt.toLocaleString('en-IN', { maximumFractionDigits: 2 });
             document.getElementById('qrTotalVal').textContent = '₹' + totalCredit.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+
+            // Show the active UPI ID in every relevant place
+            document.getElementById('qrUpiId').textContent = upiId;
+            document.getElementById('qrStepUpi').textContent = upiId;
 
             if (symbol === '₹') {
                 amtValueEl.textContent = '₹' + formatNumber(amt);
@@ -1607,7 +1686,7 @@
             }
             amtCopyEl.textContent = formatNumber(inrFinal);
 
-            const upiUri = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_NAME)}&am=${inrFinal.toFixed(2)}&cu=INR&tn=Deposit+to+VERTEX`;
+            const upiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(UPI_NAME)}&am=${inrFinal.toFixed(2)}&cu=INR&tn=Deposit+to+VERTEX`;
 
             const target = document.getElementById('qrCodeTarget');
             target.innerHTML = '';
@@ -1631,6 +1710,41 @@
 
             overlay.classList.add('show');
             startQrTimer();
+        }
+
+        /* ============================================================
+           OPEN UPI APP (deep link)
+           ============================================================ */
+        function openUpiApp(app) {
+            const p = window.__pendingDeposit;
+            if (!p) { showMsg('No pending deposit', 'error'); return; }
+            const upiId = p.upiId || currentUpiId;
+            const inrAmount = p.inrAmount || 0;
+            const name = UPI_NAME;
+
+            const baseUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(name)}&am=${inrAmount.toFixed(2)}&cu=INR&tn=Deposit+to+VERTEX`;
+
+            const schemeMap = {
+                paytm: 'paytmmp://pay?',
+                gpay: 'tez://upi/pay?',
+                phonepe: 'phonepe://pay?',
+                navi: 'navi://pay?'
+            };
+
+            const scheme = schemeMap[app];
+            if (!scheme) return;
+
+            // Build app-specific link with same parameters
+            const params = baseUri.split('?')[1];
+            const deepLink = scheme + params;
+
+            // Try to open the app
+            window.location.href = deepLink;
+
+            // Fallback after 2 seconds: if nothing happens, show message
+            setTimeout(() => {
+                showMsg('If the app did not open, please scan the QR or copy the UPI ID.', 'error');
+            }, 2200);
         }
 
         function closeQrModal() {
@@ -1693,7 +1807,7 @@
                 }, 1400);
             });
         }
-        bindCopy('qrCopyUpi', () => UPI_ID);
+        bindCopy('qrCopyUpi', () => document.getElementById('qrUpiId').textContent);
         bindCopy('qrCopyAmt', () => document.getElementById('qrAmtCopy').textContent);
 
         /* ============================================================
@@ -1710,7 +1824,6 @@
             window.dispatchEvent(new CustomEvent('deposit:submit', { detail: p }));
         }
 
-        /* Firebase module calls this after successful push */
         window.__onDepositSubmitted = function(payload) {
             closeQrModal();
             document.getElementById('successAmt').textContent = '₹' + formatNumber(payload.inrAmount);
