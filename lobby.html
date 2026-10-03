@@ -1147,6 +1147,11 @@ function initAssetStore(asset) {
     return store;
 }
 
+/* ------------------------------------------------------------
+   stepCandle — Sequential, continuous, no forced direction applied here.
+   Forced direction only affects the LIVE (visual) candle, not the
+   stored close, so next candle always opens at this close.
+   ------------------------------------------------------------ */
 function stepCandle(idx, prevClose, mom, asset) {
     const s = asset.seed * 1009;
     const r1 = hash01(idx*3  + 11 + s);
@@ -1203,24 +1208,31 @@ function decideOutcome(periodNum) {
     return b.up > b.down ? 'down' : 'up';
 }
 
+/* ------------------------------------------------------------
+   getForcedTarget — The VISUAL target close for the last candle.
+   - UP  ⇒ target = open + magnitude  (green)
+   - DOWN ⇒ target = open - magnitude  (red)
+   Returns null when no forced direction exists for this period.
+   ------------------------------------------------------------ */
 function getForcedTarget(candle, asset) {
     if (!candle || !asset) return null;
     const periodNum = (asset.prdBase + BigInt(candle.idx)).toString();
     const outcome = decideOutcome(periodNum);
     if (outcome !== 'up' && outcome !== 'down') return null;
     const open = candle.open;
-    const range = Math.max(Math.abs(candle.close - open), 0.05);
-    const magFactor = 0.45 + hash01(candle.idx * 777 + asset.seed * 13) * 0.55;
-    const mag = range * magFactor;
+    // Magnitude relative to the natural range (guarantees visible move)
+    const naturalRange = Math.max(Math.abs(candle.close - open), 0.05);
+    const magFactor = 0.85 + hash01(candle.idx * 777 + asset.seed * 13) * 0.65;
+    const mag = naturalRange * magFactor;
     return outcome === 'up' ? open + mag : open - mag;
 }
 
-function getTargetClose(candle, asset, progress) {
-    if (progress < CONVERGE_START) return candle.close;
-    const forced = getForcedTarget(candle, asset);
-    return forced !== null ? forced : candle.close;
-}
-
+/* ------------------------------------------------------------
+   getDisplayCandle — for HISTORICAL (completed) candles.
+   If a forced direction exists for that past period, we display
+   it as if it closed at the forced target. This makes history
+   consistent with what the admin forced.
+   ------------------------------------------------------------ */
 function getDisplayCandle(c, asset) {
     const forced = getForcedTarget(c, asset);
     if (forced === null) return c;
@@ -1246,25 +1258,39 @@ function naturalWander(candle, progress, seed) {
     return open + (close - open) * progress + offset;
 }
 
+/* ------------------------------------------------------------
+   getLiveCandle — the CURRENT period candle.
+   If admin forced UP/DOWN, from CONVERGE_START we smoothly
+   blend the natural wander into the forced target so that by
+   100% progress the candle is definitively green (UP) or red (DOWN).
+   ------------------------------------------------------------ */
 function getLiveCandle(candle, progress, asset) {
     const open = candle.open;
     const nat = naturalWander(candle, progress, asset.seed);
     const natClamped = Math.min(candle.high, Math.max(candle.low, nat));
+
+    const forcedTarget = getForcedTarget(candle, asset);
+
     let p;
-    if (progress < CONVERGE_START) {
+    if (progress < CONVERGE_START || forcedTarget === null) {
         p = natClamped;
     } else {
-        const target = getTargetClose(candle, asset, progress);
         const t = (progress - CONVERGE_START) / (1 - CONVERGE_START);
         const blend = t * t * t * (t * (t * 6 - 15) + 10);
-        p = natClamped * (1 - blend) + target * blend;
+        p = natClamped * (1 - blend) + forcedTarget * blend;
     }
+
     let hi = Math.max(open, p);
     let lo = Math.min(open, p);
     hi = Math.max(hi, open + (candle.high - open) * progress);
     lo = Math.min(lo, open + (candle.low  - open) * progress);
+    if (forcedTarget !== null) {
+        hi = Math.max(hi, open, forcedTarget);
+        lo = Math.min(lo, open, forcedTarget);
+    }
     return { open, close:p, high:hi, low:lo };
 }
+
 function getCurrentPrice() {
     const now = Date.now();
     const idx = getPeriodIndex(now);
@@ -1304,13 +1330,11 @@ function drawChart(currentIdx, progress) {
         const x = xOf(list[i].idx);
         if (x + slotW < padL || x - slotW > padL + plotW) continue;
         const c = list[i];
-        if (c.low < minP) minP = c.low;
-        if (c.high > maxP) maxP = c.high;
-    }
-    const liveX = xOf(currentIdx);
-    if (liveX + slotW >= padL && liveX - slotW <= padL + plotW) {
-        if (liveCandle.low < minP) minP = liveCandle.low;
-        if (liveCandle.high > maxP) maxP = liveCandle.high;
+        // For historical candles use forced display values so scaling accounts for forced moves
+        const cIsLive = (i === list.length - 1);
+        const dcv = cIsLive ? liveCandle : getDisplayCandle(c, activeAsset);
+        if (dcv.low < minP) minP = dcv.low;
+        if (dcv.high > maxP) maxP = dcv.high;
     }
     if (!isFinite(minP)) { minP = activeAsset.basePrice - 5; maxP = activeAsset.basePrice + 5; }
     let span = maxP - minP;
@@ -1353,7 +1377,9 @@ function drawChart(currentIdx, progress) {
         ctx.fillStyle = col;
         ctx.fillRect(x - bodyW/2, top, bodyW, hgt);
     }
-    if (liveX > padL - slotW && liveX < padL + plotW + slotW) {
+    if (liveX_dummy_placeholder_never_used) {}
+    if (true) {
+        const liveX = xOf(currentIdx);
         const liveY = yOf(liveCandle.close);
         const liveUp = liveCandle.close >= liveCandle.open;
         const liveCol = liveUp ? '#00e676' : '#ff5252';
@@ -1376,6 +1402,7 @@ function drawChart(currentIdx, progress) {
         ctx.fillText(badgeTxt, bx + bw/2, by + bh/2 + 0.5);
     }
 }
+var liveX_dummy_placeholder_never_used = null;
 
 function setActiveAsset(id) {
     if (activeBet) { showToast('Cannot switch while trade is active!', 'warning'); return; }
@@ -1511,28 +1538,50 @@ function placeBet(direction) {
     const now = Date.now();
     const currentIdx = getPeriodIndex(now);
     const periodNum = (activeAsset.prdBase + BigInt(currentIdx)).toString();
-    const entryPrice = getCurrentPrice();
+    // Entry price — uses the REAL current candle open (not floating mid-candle price).
+    // We anchor entry to the candle's OPEN so that win/loss is decided by candle color.
+    const currentCandle = getCandle(currentIdx, activeAsset);
+    const entryPrice = currentCandle.open;
     userData.wallet -= betAmt;
     syncUserLocal();
     recordBet(periodNum, direction, betAmt);
     activeBet = {
-        direction, entryPrice, amount: betAmt,
-        periodIdx: currentIdx, periodNum,
-        asset: activeAsset, assetLabel: activeAsset.label
+        direction,
+        entryPrice,
+        entryOpen: currentCandle.open,
+        amount: betAmt,
+        periodIdx: currentIdx,
+        periodNum,
+        asset: activeAsset,
+        assetLabel: activeAsset.label
     };
     showToast(`Bet Placed: ${direction.toUpperCase()} ₹${formatCurrency(betAmt)}`, 'success');
 }
 btnUp.addEventListener('click', () => placeBet('up'));
 btnDown.addEventListener('click', () => placeBet('down'));
 
+/* ------------------------------------------------------------
+   evaluateTrade — RESULT IS DECIDED BY CANDLE COLOR
+   - UP bet wins if the settled candle's display close >= open (green)
+   - DOWN bet wins if the settled candle's display close < open (red)
+   The display close respects the admin-forced direction, so what
+   the user sees is exactly what they get.
+   ------------------------------------------------------------ */
 function evaluateTrade(settledIdx) {
     if (!activeBet) return;
     const finalCandle = getCandle(settledIdx, activeBet.asset);
-    const forced = getForcedTarget(finalCandle, activeBet.asset);
-    const finalPrice = forced !== null ? forced : finalCandle.close;
+    const displayCandle = getDisplayCandle(finalCandle, activeBet.asset);
+    const finalClose = displayCandle.close;
+    const finalOpen = displayCandle.open;
+
+    // Determine candle color
+    const isGreen = finalClose >= finalOpen;
+    const isRed = !isGreen;
+
     let won = false;
-    if (activeBet.direction === 'up'   && finalPrice > activeBet.entryPrice) won = true;
-    if (activeBet.direction === 'down' && finalPrice < activeBet.entryPrice) won = true;
+    if (activeBet.direction === 'up' && isGreen) won = true;
+    if (activeBet.direction === 'down' && isRed) won = true;
+
     if (won) {
         const payout = activeBet.amount * 1.85;
         const profit = payout - activeBet.amount;
@@ -1540,14 +1589,16 @@ function evaluateTrade(settledIdx) {
         syncUserLocal();
         showToast(`Won: +₹${formatCurrency(profit)}`, 'success');
         addTx(userData.uid, {
-            type:'trade_win', amount: profit,
+            type:'trade_win',
+            amount: profit,
             note: `${activeBet.assetLabel} • Bet ₹${formatCurrency(activeBet.amount)}`,
             walletAfter: userData.wallet
         });
     } else {
         showToast(`Lost: -₹${formatCurrency(activeBet.amount)}`, 'error');
         addTx(userData.uid, {
-            type:'trade_loss', amount: -activeBet.amount,
+            type:'trade_loss',
+            amount: -activeBet.amount,
             note: `${activeBet.assetLabel} • Bet ₹${formatCurrency(activeBet.amount)}`,
             walletAfter: userData.wallet
         });
