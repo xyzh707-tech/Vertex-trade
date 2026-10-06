@@ -1147,11 +1147,6 @@ function initAssetStore(asset) {
     return store;
 }
 
-/* ------------------------------------------------------------
-   stepCandle — Sequential, continuous, no forced direction applied here.
-   Forced direction only affects the LIVE (visual) candle, not the
-   stored close, so next candle always opens at this close.
-   ------------------------------------------------------------ */
 function stepCandle(idx, prevClose, mom, asset) {
     const s = asset.seed * 1009;
     const r1 = hash01(idx*3  + 11 + s);
@@ -1198,21 +1193,32 @@ function getCandle(idx, asset) {
     return store.map.get(idx);
 }
 
+/* ============================================================
+   decideOutcome — final direction of the period's candle
+   Priority:
+     1. Admin forced direction (highest priority)
+     2. Player bets — inverted (house wins)
+     3. Nothing — null (natural)
+   ============================================================ */
 function decideOutcome(periodNum) {
     const forced = forcedCache[periodNum];
     if (forced === 'up' || forced === 'down') return forced;
+
     const b = periodBets[periodNum];
     if (!b) return null;
     if (b.up === 0 && b.down === 0) return null;
     if (Math.abs(b.up - b.down) < 0.001) return null;
-    return b.up > b.down ? 'down' : 'up';
+
+    const playerDir = b.up > b.down ? 'up' : 'down';
+    return playerDir === 'up' ? 'down' : 'up';
 }
 
 /* ------------------------------------------------------------
    getForcedTarget — The VISUAL target close for the last candle.
-   - UP  ⇒ target = open + magnitude  (green)
-   - DOWN ⇒ target = open - magnitude  (red)
    Returns null when no forced direction exists for this period.
+   IMPORTANT: Only used for visual rendering. It DOES NOT modify
+   the real candle's stored close, so next candle always opens
+   at the previous candle's natural close (continuity preserved).
    ------------------------------------------------------------ */
 function getForcedTarget(candle, asset) {
     if (!candle || !asset) return null;
@@ -1220,7 +1226,6 @@ function getForcedTarget(candle, asset) {
     const outcome = decideOutcome(periodNum);
     if (outcome !== 'up' && outcome !== 'down') return null;
     const open = candle.open;
-    // Magnitude relative to the natural range (guarantees visible move)
     const naturalRange = Math.max(Math.abs(candle.close - open), 0.05);
     const magFactor = 0.85 + hash01(candle.idx * 777 + asset.seed * 13) * 0.65;
     const mag = naturalRange * magFactor;
@@ -1228,10 +1233,10 @@ function getForcedTarget(candle, asset) {
 }
 
 /* ------------------------------------------------------------
-   getDisplayCandle — for HISTORICAL (completed) candles.
-   If a forced direction exists for that past period, we display
-   it as if it closed at the forced target. This makes history
-   consistent with what the admin forced.
+   getDisplayCandle — VISUAL representation of any candle.
+   The `open` is ALWAYS the natural open (never modified).
+   Only the close (and high/low) may be visually adjusted to
+   reflect the forced direction. This keeps the chart continuous.
    ------------------------------------------------------------ */
 function getDisplayCandle(c, asset) {
     const forced = getForcedTarget(c, asset);
@@ -1260,9 +1265,9 @@ function naturalWander(candle, progress, seed) {
 
 /* ------------------------------------------------------------
    getLiveCandle — the CURRENT period candle.
-   If admin forced UP/DOWN, from CONVERGE_START we smoothly
-   blend the natural wander into the forced target so that by
-   100% progress the candle is definitively green (UP) or red (DOWN).
+   From CONVERGE_START we smoothly blend the natural wander into
+   the forced target. By 100% progress the candle is definitively
+   green (UP) or red (DOWN) as forced.
    ------------------------------------------------------------ */
 function getLiveCandle(candle, progress, asset) {
     const open = candle.open;
@@ -1330,11 +1335,10 @@ function drawChart(currentIdx, progress) {
         const x = xOf(list[i].idx);
         if (x + slotW < padL || x - slotW > padL + plotW) continue;
         const c = list[i];
-        // For historical candles use forced display values so scaling accounts for forced moves
-        const cIsLive = (i === list.length - 1);
-        const dcv = cIsLive ? liveCandle : getDisplayCandle(c, activeAsset);
-        if (dcv.low < minP) minP = dcv.low;
-        if (dcv.high > maxP) maxP = dcv.high;
+        const isLive = (i === list.length - 1);
+        const dc = isLive ? liveCandle : getDisplayCandle(c, activeAsset);
+        if (dc.low < minP) minP = dc.low;
+        if (dc.high > maxP) maxP = dc.high;
     }
     if (!isFinite(minP)) { minP = activeAsset.basePrice - 5; maxP = activeAsset.basePrice + 5; }
     let span = maxP - minP;
@@ -1377,9 +1381,7 @@ function drawChart(currentIdx, progress) {
         ctx.fillStyle = col;
         ctx.fillRect(x - bodyW/2, top, bodyW, hgt);
     }
-    if (liveX_dummy_placeholder_never_used) {}
-    if (true) {
-        const liveX = xOf(currentIdx);
+    if (liveX > padL - slotW && liveX < padL + plotW + slotW) {
         const liveY = yOf(liveCandle.close);
         const liveUp = liveCandle.close >= liveCandle.open;
         const liveCol = liveUp ? '#00e676' : '#ff5252';
@@ -1402,7 +1404,6 @@ function drawChart(currentIdx, progress) {
         ctx.fillText(badgeTxt, bx + bw/2, by + bh/2 + 0.5);
     }
 }
-var liveX_dummy_placeholder_never_used = null;
 
 function setActiveAsset(id) {
     if (activeBet) { showToast('Cannot switch while trade is active!', 'warning'); return; }
@@ -1538,22 +1539,14 @@ function placeBet(direction) {
     const now = Date.now();
     const currentIdx = getPeriodIndex(now);
     const periodNum = (activeAsset.prdBase + BigInt(currentIdx)).toString();
-    // Entry price — uses the REAL current candle open (not floating mid-candle price).
-    // We anchor entry to the candle's OPEN so that win/loss is decided by candle color.
-    const currentCandle = getCandle(currentIdx, activeAsset);
-    const entryPrice = currentCandle.open;
+    const entryPrice = getCurrentPrice();
     userData.wallet -= betAmt;
     syncUserLocal();
     recordBet(periodNum, direction, betAmt);
     activeBet = {
-        direction,
-        entryPrice,
-        entryOpen: currentCandle.open,
-        amount: betAmt,
-        periodIdx: currentIdx,
-        periodNum,
-        asset: activeAsset,
-        assetLabel: activeAsset.label
+        direction, entryPrice, amount: betAmt,
+        periodIdx: currentIdx, periodNum,
+        asset: activeAsset, assetLabel: activeAsset.label
     };
     showToast(`Bet Placed: ${direction.toUpperCase()} ₹${formatCurrency(betAmt)}`, 'success');
 }
@@ -1561,11 +1554,10 @@ btnUp.addEventListener('click', () => placeBet('up'));
 btnDown.addEventListener('click', () => placeBet('down'));
 
 /* ------------------------------------------------------------
-   evaluateTrade — RESULT IS DECIDED BY CANDLE COLOR
-   - UP bet wins if the settled candle's display close >= open (green)
-   - DOWN bet wins if the settled candle's display close < open (red)
-   The display close respects the admin-forced direction, so what
-   the user sees is exactly what they get.
+   evaluateTrade — win/loss is decided by what the user SAW:
+   the final displayed candle's color.
+   - UP bet wins if displayed candle is GREEN (close >= open)
+   - DOWN bet wins if displayed candle is RED (close < open)
    ------------------------------------------------------------ */
 function evaluateTrade(settledIdx) {
     if (!activeBet) return;
@@ -1574,7 +1566,6 @@ function evaluateTrade(settledIdx) {
     const finalClose = displayCandle.close;
     const finalOpen = displayCandle.open;
 
-    // Determine candle color
     const isGreen = finalClose >= finalOpen;
     const isRed = !isGreen;
 
