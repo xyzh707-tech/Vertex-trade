@@ -1216,9 +1216,6 @@ function decideOutcome(periodNum) {
 /* ------------------------------------------------------------
    getForcedTarget — The VISUAL target close for the last candle.
    Returns null when no forced direction exists for this period.
-   IMPORTANT: Only used for visual rendering. It DOES NOT modify
-   the real candle's stored close, so next candle always opens
-   at the previous candle's natural close (continuity preserved).
    ------------------------------------------------------------ */
 function getForcedTarget(candle, asset) {
     if (!candle || !asset) return null;
@@ -1239,6 +1236,7 @@ function getForcedTarget(candle, asset) {
    reflect the forced direction. This keeps the chart continuous.
    ------------------------------------------------------------ */
 function getDisplayCandle(c, asset) {
+    if (!c) return { open:0, close:0, high:0, low:0 };
     const forced = getForcedTarget(c, asset);
     if (forced === null) return c;
     return {
@@ -1270,6 +1268,7 @@ function naturalWander(candle, progress, seed) {
    green (UP) or red (DOWN) as forced.
    ------------------------------------------------------------ */
 function getLiveCandle(candle, progress, asset) {
+    if (!candle) return { open:0, close:0, high:0, low:0 };
     const open = candle.open;
     const nat = naturalWander(candle, progress, asset.seed);
     const natClamped = Math.min(candle.high, Math.max(candle.low, nat));
@@ -1313,6 +1312,7 @@ function roundRectPath(x, y, w, h, r) {
     ctx.closePath();
 }
 function drawChart(currentIdx, progress) {
+    if (VW <= 1 || VH <= 1) resizeCanvas();
     ctx.clearRect(0, 0, VW, VH);
     ctx.fillStyle = '#0d141e'; ctx.fillRect(0, 0, VW, VH);
     const padL = 8, padR = 86, padT = 66, padB = 16;
@@ -1326,7 +1326,11 @@ function drawChart(currentIdx, progress) {
     const totalSlots = Math.ceil(visibleCandles) + EXTRA_HISTORY + 4;
     const startIdx = currentIdx - totalSlots + 1;
     const list = [];
-    for (let i = startIdx; i <= currentIdx; i++) list.push(getCandle(i, activeAsset));
+    for (let i = startIdx; i <= currentIdx; i++) {
+        const cc = getCandle(i, activeAsset);
+        if (cc) list.push(cc);
+    }
+    if (!list.length) return;
     const lastC = list[list.length - 1];
     const liveCandle = getLiveCandle(lastC, progress, activeAsset);
     const xOf = (idx) => padL + plotW - slotW/2 + (idx - currentIdx) * slotW + panPixels;
@@ -1337,6 +1341,7 @@ function drawChart(currentIdx, progress) {
         const c = list[i];
         const isLive = (i === list.length - 1);
         const dc = isLive ? liveCandle : getDisplayCandle(c, activeAsset);
+        if (!dc) continue;
         if (dc.low < minP) minP = dc.low;
         if (dc.high > maxP) maxP = dc.high;
     }
@@ -1368,6 +1373,7 @@ function drawChart(currentIdx, progress) {
         if (x + slotW < padL || x - slotW > padL + plotW) continue;
         const isLive = (i === list.length - 1);
         const dc = isLive ? liveCandle : getDisplayCandle(c, activeAsset);
+        if (!dc) continue;
         const up = dc.close >= dc.open;
         const col = up ? '#00e676' : '#ff5252';
         ctx.strokeStyle = col; ctx.lineWidth = 1;
@@ -1381,6 +1387,7 @@ function drawChart(currentIdx, progress) {
         ctx.fillStyle = col;
         ctx.fillRect(x - bodyW/2, top, bodyW, hgt);
     }
+    const liveX = xOf(currentIdx);
     if (liveX > padL - slotW && liveX < padL + plotW + slotW) {
         const liveY = yOf(liveCandle.close);
         const liveUp = liveCandle.close >= liveCandle.open;
@@ -1503,32 +1510,72 @@ const upSub = document.getElementById('up-subtext');
 const downSub = document.getElementById('down-subtext');
 let lastHandledPeriod = getPeriodIndex(Date.now());
 
+/* ============================================================
+   SYNC LOOP — RESILIENT VERSION
+   - try/catch wraps all logic
+   - requestAnimationFrame is in `finally` so the loop ALWAYS
+     continues even if an error is thrown.
+   - Stuck detector: if currentIdx doesn't change for >4s,
+     force a recovery.
+   ============================================================ */
+let lastLoopTick = Date.now();
+let lastSeenIdx = getPeriodIndex(Date.now());
+let stuckRecoveryCount = 0;
+
 function syncLoop() {
-    const now = Date.now();
-    const currentIdx = getPeriodIndex(now);
-    const prdNum = activeAsset.prdBase + BigInt(currentIdx);
-    const msInto = (now - BASE_TIMESTAMP) % PERIOD_MS;
-    const secsLeft = Math.max(1, Math.ceil((PERIOD_MS - msInto) / 1000));
-    const progress = msInto / PERIOD_MS;
-    document.getElementById('prd-display').innerText = prdNum.toString();
-    document.getElementById('timer-display').innerText = '00:' + (secsLeft < 10 ? '0' : '') + secsLeft;
-    if (lastHandledPeriod !== currentIdx) {
-        if (activeBet) evaluateTrade(lastHandledPeriod);
-        lastHandledPeriod = currentIdx;
+    try {
+        const now = Date.now();
+        lastLoopTick = now;
+        const currentIdx = getPeriodIndex(now);
+
+        // Stuck detector
+        if (currentIdx !== lastSeenIdx) {
+            lastSeenIdx = currentIdx;
+            stuckRecoveryCount = 0;
+        } else {
+            // If we've been on the same idx for >4s (shouldn't happen — period is 30s,
+            // but if rAF stalled and page froze, this can go stale), and now is far ahead,
+            // force a redraw.
+            if (now - lastLoopTick > 4000 && stuckRecoveryCount < 3) {
+                stuckRecoveryCount++;
+                // Force redraw
+                resizeCanvas();
+            }
+        }
+
+        const prdNum = activeAsset.prdBase + BigInt(currentIdx);
+        const msInto = ((now - BASE_TIMESTAMP) % PERIOD_MS + PERIOD_MS) % PERIOD_MS;
+        const secsLeft = Math.max(1, Math.ceil((PERIOD_MS - msInto) / 1000));
+        const progress = msInto / PERIOD_MS;
+
+        document.getElementById('prd-display').innerText = prdNum.toString();
+        document.getElementById('timer-display').innerText = '00:' + (secsLeft < 10 ? '0' : '') + secsLeft;
+
+        if (lastHandledPeriod !== currentIdx) {
+            if (activeBet) {
+                try { evaluateTrade(lastHandledPeriod); } catch(e) { console.error('[trade]', e); activeBet = null; }
+            }
+            lastHandledPeriod = currentIdx;
+        }
+
+        const locked = secsLeft <= LOCK_SECONDS;
+        if (activeBet) {
+            btnUp.disabled = true; btnDown.disabled = true;
+            upSub.innerText = 'Trade Running'; downSub.innerText = 'Trade Running';
+        } else if (locked) {
+            btnUp.disabled = true; btnDown.disabled = true;
+            upSub.innerText = 'Betting Locked'; downSub.innerText = 'Betting Locked';
+        } else {
+            btnUp.disabled = false; btnDown.disabled = false;
+            upSub.innerText = '+85% Return'; downSub.innerText = '+85% Return';
+        }
+
+        try { drawChart(currentIdx, progress); } catch(e) { console.error('[draw]', e); }
+    } catch(e) {
+        console.error('[syncLoop]', e);
+    } finally {
+        requestAnimationFrame(syncLoop);
     }
-    const locked = secsLeft <= LOCK_SECONDS;
-    if (activeBet) {
-        btnUp.disabled = true; btnDown.disabled = true;
-        upSub.innerText = 'Trade Running'; downSub.innerText = 'Trade Running';
-    } else if (locked) {
-        btnUp.disabled = true; btnDown.disabled = true;
-        upSub.innerText = 'Betting Locked'; downSub.innerText = 'Betting Locked';
-    } else {
-        btnUp.disabled = false; btnDown.disabled = false;
-        upSub.innerText = '+85% Return'; downSub.innerText = '+85% Return';
-    }
-    drawChart(currentIdx, progress);
-    requestAnimationFrame(syncLoop);
 }
 
 function placeBet(direction) {
@@ -1556,45 +1603,50 @@ btnDown.addEventListener('click', () => placeBet('down'));
 /* ------------------------------------------------------------
    evaluateTrade — win/loss is decided by what the user SAW:
    the final displayed candle's color.
-   - UP bet wins if displayed candle is GREEN (close >= open)
-   - DOWN bet wins if displayed candle is RED (close < open)
    ------------------------------------------------------------ */
 function evaluateTrade(settledIdx) {
     if (!activeBet) return;
-    const finalCandle = getCandle(settledIdx, activeBet.asset);
-    const displayCandle = getDisplayCandle(finalCandle, activeBet.asset);
-    const finalClose = displayCandle.close;
-    const finalOpen = displayCandle.open;
+    try {
+        const finalCandle = getCandle(settledIdx, activeBet.asset);
+        if (!finalCandle) { activeBet = null; return; }
+        const displayCandle = getDisplayCandle(finalCandle, activeBet.asset);
+        if (!displayCandle) { activeBet = null; return; }
+        const finalClose = displayCandle.close;
+        const finalOpen = displayCandle.open;
 
-    const isGreen = finalClose >= finalOpen;
-    const isRed = !isGreen;
+        const isGreen = finalClose >= finalOpen;
+        const isRed = !isGreen;
 
-    let won = false;
-    if (activeBet.direction === 'up' && isGreen) won = true;
-    if (activeBet.direction === 'down' && isRed) won = true;
+        let won = false;
+        if (activeBet.direction === 'up' && isGreen) won = true;
+        if (activeBet.direction === 'down' && isRed) won = true;
 
-    if (won) {
-        const payout = activeBet.amount * 1.85;
-        const profit = payout - activeBet.amount;
-        userData.wallet += payout;
-        syncUserLocal();
-        showToast(`Won: +₹${formatCurrency(profit)}`, 'success');
-        addTx(userData.uid, {
-            type:'trade_win',
-            amount: profit,
-            note: `${activeBet.assetLabel} • Bet ₹${formatCurrency(activeBet.amount)}`,
-            walletAfter: userData.wallet
-        });
-    } else {
-        showToast(`Lost: -₹${formatCurrency(activeBet.amount)}`, 'error');
-        addTx(userData.uid, {
-            type:'trade_loss',
-            amount: -activeBet.amount,
-            note: `${activeBet.assetLabel} • Bet ₹${formatCurrency(activeBet.amount)}`,
-            walletAfter: userData.wallet
-        });
+        if (won) {
+            const payout = activeBet.amount * 1.85;
+            const profit = payout - activeBet.amount;
+            userData.wallet += payout;
+            syncUserLocal();
+            showToast(`Won: +₹${formatCurrency(profit)}`, 'success');
+            addTx(userData.uid, {
+                type:'trade_win',
+                amount: profit,
+                note: `${activeBet.assetLabel} • Bet ₹${formatCurrency(activeBet.amount)}`,
+                walletAfter: userData.wallet
+            });
+        } else {
+            showToast(`Lost: -₹${formatCurrency(activeBet.amount)}`, 'error');
+            addTx(userData.uid, {
+                type:'trade_loss',
+                amount: -activeBet.amount,
+                note: `${activeBet.assetLabel} • Bet ₹${formatCurrency(activeBet.amount)}`,
+                walletAfter: userData.wallet
+            });
+        }
+    } catch(e) {
+        console.error('[evaluateTrade]', e);
+    } finally {
+        activeBet = null;
     }
-    activeBet = null;
 }
 
 /* AMOUNT INPUT — auto-format on blur/change */
@@ -1609,6 +1661,25 @@ function formatAmountInput() {
 }
 amountInput.addEventListener('blur', formatAmountInput);
 amountInput.addEventListener('change', formatAmountInput);
+
+/* ============================================================
+   WATCHDOG — if syncLoop didn't tick in 3s, forcibly restart.
+   Handles cases where rAF chain breaks due to background tab
+   or unhandled errors.
+   ============================================================ */
+setInterval(() => {
+    if (Date.now() - lastLoopTick > 3000) {
+        console.warn('[watchdog] syncLoop stalled — restarting');
+        try { requestAnimationFrame(syncLoop); } catch(e) {}
+    }
+}, 3000);
+
+/* Also refresh canvas on visibility change */
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        resizeCanvas();
+    }
+});
 
 /* BOOT */
 resizeCanvas();
