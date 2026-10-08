@@ -17,27 +17,97 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
 .online-badge { background:#202c3a; border:1px solid #00e676; padding:5px 10px; border-radius:20px; font-size:11px; color:#8a9ba8; display:flex; align-items:center; gap:5px; }
 .online-dot { width:6px; height:6px; background:#00e676; border-radius:50%; box-shadow:0 0 5px #00e676; }
 
+/* ============ ASSET SELECTOR (single button) ============ */
 .asset-bar-container { height:55px; background:#131b26; display:flex; align-items:center; border-bottom:1px solid #1c2836; padding:0 12px; position:relative; z-index:15; }
-.asset-selector { display:inline-flex; align-items:center; gap:10px; background:#17212d; border:1px solid #00e676; padding:8px 14px; border-radius:10px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; transition:all 0.2s; position:relative; min-width:180px; }
+.asset-selector {
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    background:#17212d;
+    border:1px solid #00e676;
+    padding:8px 14px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:700;
+    color:#fff;
+    cursor:pointer;
+    transition:all 0.2s;
+    position:relative;
+    min-width:180px;
+}
 .asset-selector:active { transform:scale(0.98); }
 .asset-selector .asset-flags { display:flex; align-items:center; gap:4px; font-size:16px; }
 .asset-selector .asset-label { flex:1; text-align:left; }
-.asset-selector .chevron-down { width:14px; height:14px; stroke:#00e676; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; transition:transform 0.25s ease; }
+.asset-selector .chevron-down {
+    width:14px;
+    height:14px;
+    stroke:#00e676;
+    fill:none;
+    stroke-width:2.5;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    transition:transform 0.25s ease;
+}
 .asset-selector.open .chevron-down { transform:rotate(180deg); }
-.asset-selector .ret-badge { font-size:9px; font-weight:800; color:#00e676; background:rgba(0,230,118,0.1); padding:2px 6px; border-radius:10px; letter-spacing:0.3px; }
+.asset-selector .ret-badge {
+    font-size:9px;
+    font-weight:800;
+    color:#00e676;
+    background:rgba(0,230,118,0.1);
+    padding:2px 6px;
+    border-radius:10px;
+    letter-spacing:0.3px;
+}
 
-.asset-drawer { position:absolute; top:100px; left:0; right:0; background:#131b26; border-bottom:1px solid #233142; z-index:14; max-height:0; overflow:hidden; transition:max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow:0 10px 30px rgba(0,0,0,0.4); }
+/* ============ ASSET DRAWER (opens below selector) ============ */
+.asset-drawer {
+    position:absolute;
+    top:100px;
+    left:0;
+    right:0;
+    background:#131b26;
+    border-bottom:1px solid #233142;
+    z-index:14;
+    max-height:0;
+    overflow:hidden;
+    transition:max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+}
 .asset-drawer.open { max-height:400px; }
 .asset-drawer-inner { padding:12px; display:flex; flex-direction:column; gap:8px; }
-.asset-item { display:flex; align-items:center; gap:12px; background:#17212d; border:1px solid #233142; border-radius:10px; padding:12px 14px; cursor:pointer; transition:all 0.15s; }
+
+.asset-item {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:#17212d;
+    border:1px solid #233142;
+    border-radius:10px;
+    padding:12px 14px;
+    cursor:pointer;
+    transition:all 0.15s;
+}
 .asset-item:hover { border-color:rgba(0,230,118,0.35); background:#1a2434; }
-.asset-item.active { border-color:#00e676; background:rgba(0,230,118,0.06); }
+.asset-item.active {
+    border-color:#00e676;
+    background:rgba(0,230,118,0.06);
+}
 .asset-item .asset-item-flags { font-size:22px; display:flex; gap:4px; flex-shrink:0; }
 .asset-item .asset-item-info { flex:1; }
 .asset-item .asset-item-name { font-size:14px; font-weight:700; color:#fff; }
 .asset-item .asset-item-sub { font-size:11px; color:#8a9ba8; margin-top:2px; }
-.asset-item .asset-item-return { font-size:10px; font-weight:800; color:#00e676; background:rgba(0,230,118,0.1); padding:4px 10px; border-radius:20px; letter-spacing:0.5px; flex-shrink:0; }
+.asset-item .asset-item-return {
+    font-size:10px;
+    font-weight:800;
+    color:#00e676;
+    background:rgba(0,230,118,0.1);
+    padding:4px 10px;
+    border-radius:20px;
+    letter-spacing:0.5px;
+    flex-shrink:0;
+}
 
+/* ============ MAIN VIEWPORT ============ */
 .main-viewport { position:relative; height:calc(100vh - 110px); width:100%; overflow:hidden; display:flex; flex-direction:column; }
 .drawer-left, .drawer-right { position:absolute; top:0; width:85%; max-width:320px; height:100%; background:#131b26; z-index:100; transition:all 0.3s ease; padding:15px; overflow-y:auto; }
 .drawer-left { left:-100%; border-right:1px solid #233142; }
@@ -58,14 +128,79 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
 .menu-item .cs-icon-canvas { width:18px; height:18px; display:block; }
 .menu-item:active { background:#202c3a; border-color:#00e676; }
 
-.event-poster { margin-top: 14px; position: relative; border-radius: 12px; overflow: hidden; cursor: pointer; border: 1px solid rgba(0, 230, 118, 0.22); background: linear-gradient(135deg, rgba(0,230,118,0.06), rgba(59,130,246,0.06)); transition: all 0.3s ease; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
-.event-poster:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 20px rgba(0, 230, 118, 0.18); border-color: rgba(0, 230, 118, 0.45); }
-.event-poster img { width: 100%; display: block; aspect-ratio: 2 / 1; object-fit: cover; background: #0d141e; }
-.event-poster::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.55) 65%, rgba(0, 0, 0, 0.9) 100%); pointer-events: none; }
-.event-poster .poster-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 12px 12px; z-index: 2; text-align: center; }
-.event-poster .poster-title { font-size: 13px; font-weight: 900; color: #ffffff; letter-spacing: 0.4px; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9); line-height: 1.2; margin-bottom: 8px; }
-.event-poster .poster-btn { display: inline-flex; align-items: center; gap: 5px; background: linear-gradient(135deg, #00e676 0%, #3b82f6 100%); color: #041014; font-size: 10px; font-weight: 800; letter-spacing: 1.1px; text-transform: uppercase; padding: 7px 14px; border-radius: 7px; box-shadow: 0 5px 14px rgba(0, 230, 118, 0.3); text-decoration: none; }
-.event-poster .poster-btn svg { width: 11px; height: 11px; stroke: #041014; fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+/* ============ EVENT POSTERS ============ */
+.event-poster {
+    margin-top: 14px;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid rgba(0, 230, 118, 0.22);
+    background: linear-gradient(135deg, rgba(0,230,118,0.06), rgba(59,130,246,0.06));
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.event-poster:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 20px rgba(0, 230, 118, 0.18);
+    border-color: rgba(0, 230, 118, 0.45);
+}
+.event-poster img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 2 / 1;
+    object-fit: cover;
+    background: #0d141e;
+}
+.event-poster::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.55) 65%, rgba(0, 0, 0, 0.9) 100%);
+    pointer-events: none;
+}
+.event-poster .poster-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 12px 12px;
+    z-index: 2;
+    text-align: center;
+}
+.event-poster .poster-title {
+    font-size: 13px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.4px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+    line-height: 1.2;
+    margin-bottom: 8px;
+}
+.event-poster .poster-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #00e676 0%, #3b82f6 100%);
+    color: #041014;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    border-radius: 7px;
+    box-shadow: 0 5px 14px rgba(0, 230, 118, 0.3);
+    text-decoration: none;
+}
+.event-poster .poster-btn svg {
+    width: 11px;
+    height: 11px;
+    stroke: #041014;
+    fill: none;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
 
 .backdrop { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:90; display:none; }
 .backdrop.active { display:block; }
@@ -155,20 +290,99 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
 .cs-input-bar button:disabled { background:#334155; color:#64748b; cursor:not-allowed; }
 .cs-input-bar button svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 
-.logout-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
+/* LOGOUT MODAL */
+.logout-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
 .logout-overlay.show { display: flex; }
-.logout-card { background: #131b26; border: 1px solid #233142; border-radius: 16px; padding: 28px 22px 20px; max-width: 380px; width: 100%; text-align: center; animation: logoutIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-@keyframes logoutIn { from { opacity: 0; transform: translateY(24px) scale(0.94); } to { opacity: 1; transform: translateY(0) scale(1); } }
-.logout-icon { width: 60px; height: 60px; margin: 0 auto 16px; border-radius: 50%; background: rgba(255, 82, 82, 0.1); border: 1px solid rgba(255, 82, 82, 0.35); display: flex; align-items: center; justify-content: center; }
-.logout-icon svg { width: 26px; height: 26px; stroke: #ff5252; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.logout-title { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 8px; letter-spacing: -0.2px; }
-.logout-text { font-size: 12.5px; color: #8a9ba8; line-height: 1.6; margin-bottom: 22px; }
+.logout-card {
+    background: #131b26;
+    border: 1px solid #233142;
+    border-radius: 16px;
+    padding: 28px 22px 20px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    animation: logoutIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+@keyframes logoutIn {
+    from { opacity: 0; transform: translateY(24px) scale(0.94); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.logout-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: rgba(255, 82, 82, 0.1);
+    border: 1px solid rgba(255, 82, 82, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.logout-icon svg {
+    width: 26px;
+    height: 26px;
+    stroke: #ff5252;
+    fill: none;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.logout-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+    letter-spacing: -0.2px;
+}
+.logout-text {
+    font-size: 12.5px;
+    color: #8a9ba8;
+    line-height: 1.6;
+    margin-bottom: 22px;
+}
 .logout-text strong { color: #fff; font-weight: 700; }
-.logout-actions { display: flex; gap: 10px; }
-.logout-btn { flex: 1; border: none; padding: 13px; border-radius: 10px; font-size: 13px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; cursor: pointer; font-family: inherit; transition: all 0.2s; }
-.logout-btn-no { background: transparent; color: #8a9ba8; border: 1px solid #233142; }
-.logout-btn-no:hover { color: #fff; border-color: #334155; background: rgba(255,255,255,0.03); }
-.logout-btn-yes { background: linear-gradient(135deg, #ff5252 0%, #c62828 100%); color: #fff; }
+.logout-actions {
+    display: flex;
+    gap: 10px;
+}
+.logout-btn {
+    flex: 1;
+    border: none;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+.logout-btn-no {
+    background: transparent;
+    color: #8a9ba8;
+    border: 1px solid #233142;
+}
+.logout-btn-no:hover {
+    color: #fff;
+    border-color: #334155;
+    background: rgba(255,255,255,0.03);
+}
+.logout-btn-yes {
+    background: linear-gradient(135deg, #ff5252 0%, #c62828 100%);
+    color: #fff;
+}
 .logout-btn-yes:hover { filter: brightness(1.08); }
 .logout-btn-yes:active { transform: scale(0.98); }
 </style>
@@ -176,6 +390,7 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
 <body>
 <div id="toast-container"></div>
 
+<!-- Loading overlay -->
 <div id="loadingOverlay" style="position:fixed;inset:0;background:#0d141e;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;">
     <div style="width:44px;height:44px;border:3px solid rgba(0,230,118,0.2);border-top-color:#00e676;border-radius:50%;animation:spinLoad 0.8s linear infinite;"></div>
     <div style="font-size:12px;color:#8a9ba8;font-weight:600;letter-spacing:1.5px;">LOADING PROFILE…</div>
@@ -196,6 +411,7 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
     </div>
 </div>
 
+<!-- ============ SINGLE ASSET SELECTOR ============ -->
 <div class="asset-bar-container">
     <div class="asset-selector" id="assetSelector">
         <div class="asset-flags" id="assetSelectorFlags">🇮🇳🇺🇸</div>
@@ -205,6 +421,7 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
     </div>
 </div>
 
+<!-- ============ ASSET DRAWER ============ -->
 <div class="asset-drawer" id="assetDrawer">
     <div class="asset-drawer-inner" id="assetDrawerInner"></div>
 </div>
@@ -469,6 +686,9 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
     </div>
 </div>
 
+<!-- ============================================================
+     LOGOUT CONFIRM MODAL
+     ============================================================ -->
 <div class="logout-overlay" id="logoutOverlay">
     <div class="logout-card">
         <div class="logout-icon">
@@ -482,6 +702,7 @@ body { background-color:#0d141e; color:#fff; height:100vh; overflow:hidden; posi
             Are you sure you want to logout from your account?<br>
             You'll need to <strong>login again</strong> to continue trading.
         </div>
+
         <div class="logout-actions">
             <button class="logout-btn logout-btn-no" id="logoutNo">No</button>
             <button class="logout-btn logout-btn-yes" id="logoutYes">Yes, Logout</button>
@@ -817,6 +1038,7 @@ const ASSETS = [
 ];
 let activeAsset = ASSETS[0];
 
+/* ============ Asset Selector (single button + drawer) ============ */
 const assetSelector = document.getElementById('assetSelector');
 const assetDrawer = document.getElementById('assetDrawer');
 const assetDrawerInner = document.getElementById('assetDrawerInner');
@@ -848,9 +1070,12 @@ function buildAssetDrawer() {
 }
 
 function refreshAssetSelectorUI() {
+    // Update the top button
     assetSelectorFlags.textContent = activeAsset.flag;
     assetSelectorLabel.textContent = activeAsset.label;
     assetSelectorBadge.textContent = '85%';
+
+    // Update the drawer active state
     assetDrawerInner.querySelectorAll('.asset-item').forEach(el => {
         el.classList.toggle('active', el.dataset.asset === activeAsset.id);
     });
@@ -969,80 +1194,28 @@ function getCandle(idx, asset) {
 }
 
 /* ============================================================
-   ★★★ UPDATED DECISION LOGIC ★★★
-   
-   Purana: Har trade ka ulta (100% loss)
-   Naya:   70-75% loss + 25-30% win (random pattern)
-   
+   decideOutcome — final direction of the period's candle
    Priority:
-     1. Admin forced direction (highest priority — admin wins)
-     2. Player bets — 70% chance HOUSE WINS (ulta), 30% chance PLAYER WINS (same)
-     3. Nothing — natural (null)
-   
-   Random pattern generation ensures:
-     - No fixed rule like "always opposite"
-     - Approximately 7 losses out of 10 trades
-     - Continuous losses never exceed 4-5 in a row
-     - Wins sprinkled in random pattern
+     1. Admin forced direction (highest priority)
+     2. Player bets — inverted (house wins)
+     3. Nothing — null (natural)
    ============================================================ */
-
-// Tracking for consecutive loss control — prevents long losing streaks
-const outcomeHistory = {};  // periodNum -> 'up'/'down' (final outcome decided)
-let consecutiveLosses = 0;
-let recentResults = [];     // sliding window of last 10 results (true = player won, false = player lost)
-
 function decideOutcome(periodNum) {
-    // 1. ADMIN OVERRIDE — highest priority, always wins
     const forced = forcedCache[periodNum];
     if (forced === 'up' || forced === 'down') return forced;
 
-    // 2. Player bets — apply weighted random (70% loss, 30% win)
     const b = periodBets[periodNum];
     if (!b) return null;
     if (b.up === 0 && b.down === 0) return null;
     if (Math.abs(b.up - b.down) < 0.001) return null;
 
-    // Player's dominant direction
     const playerDir = b.up > b.down ? 'up' : 'down';
-
-    // ==== Anti-long-streak protection ====
-    // If player has already lost 4+ in a row, force a WIN this time
-    // so they don't quit (feels "recovering")
-    if (consecutiveLosses >= 4) {
-        // Force player to win → same direction as player
-        return playerDir;
-    }
-
-    // ==== Weighted random: 70% loss / 30% win ====
-    // Use periodNum-derived deterministic hash so it doesn't change mid-candle
-    const r = hash01(Number(periodNum.slice(-9)) * 997 + Math.floor(Date.now() / 30000) * 13);
-    
-    // Adjust win rate slightly based on recent history
-    // If player lost many recent trades, give them higher chance of win
-    let winChance = 0.30; // base 30% win
-    const recentLosses = recentResults.filter(x => x === false).length;
-    const recentWins = recentResults.filter(x => x === true).length;
-    if (recentResults.length >= 5) {
-        if (recentWins === 0) winChance = 0.65; // cold streak — let them win
-        else if (recentWins === 1) winChance = 0.45;
-        else if (recentWins >= 4) winChance = 0.15; // hot streak — cool them down
-    }
-    
-    const isWin = r < winChance;
-    
-    // Track result
-    recentResults.push(isWin);
-    if (recentResults.length > 10) recentResults.shift();
-    if (isWin) consecutiveLosses = 0;
-    else consecutiveLosses++;
-
-    // If player should win → same direction; if lose → opposite
-    if (isWin) return playerDir;
     return playerDir === 'up' ? 'down' : 'up';
 }
 
 /* ------------------------------------------------------------
-   getForcedTarget — Visual target close for the last candle.
+   getForcedTarget — The VISUAL target close for the last candle.
+   Returns null when no forced direction exists for this period.
    ------------------------------------------------------------ */
 function getForcedTarget(candle, asset) {
     if (!candle || !asset) return null;
@@ -1056,6 +1229,12 @@ function getForcedTarget(candle, asset) {
     return outcome === 'up' ? open + mag : open - mag;
 }
 
+/* ------------------------------------------------------------
+   getDisplayCandle — VISUAL representation of any candle.
+   The `open` is ALWAYS the natural open (never modified).
+   Only the close (and high/low) may be visually adjusted to
+   reflect the forced direction. This keeps the chart continuous.
+   ------------------------------------------------------------ */
 function getDisplayCandle(c, asset) {
     if (!c) return { open:0, close:0, high:0, low:0 };
     const forced = getForcedTarget(c, asset);
@@ -1082,6 +1261,12 @@ function naturalWander(candle, progress, seed) {
     return open + (close - open) * progress + offset;
 }
 
+/* ------------------------------------------------------------
+   getLiveCandle — the CURRENT period candle.
+   From CONVERGE_START we smoothly blend the natural wander into
+   the forced target. By 100% progress the candle is definitively
+   green (UP) or red (DOWN) as forced.
+   ------------------------------------------------------------ */
 function getLiveCandle(candle, progress, asset) {
     if (!candle) return { open:0, close:0, high:0, low:0 };
     const open = candle.open;
@@ -1325,6 +1510,14 @@ const upSub = document.getElementById('up-subtext');
 const downSub = document.getElementById('down-subtext');
 let lastHandledPeriod = getPeriodIndex(Date.now());
 
+/* ============================================================
+   SYNC LOOP — RESILIENT VERSION
+   - try/catch wraps all logic
+   - requestAnimationFrame is in `finally` so the loop ALWAYS
+     continues even if an error is thrown.
+   - Stuck detector: if currentIdx doesn't change for >4s,
+     force a recovery.
+   ============================================================ */
 let lastLoopTick = Date.now();
 let lastSeenIdx = getPeriodIndex(Date.now());
 let stuckRecoveryCount = 0;
@@ -1335,12 +1528,17 @@ function syncLoop() {
         lastLoopTick = now;
         const currentIdx = getPeriodIndex(now);
 
+        // Stuck detector
         if (currentIdx !== lastSeenIdx) {
             lastSeenIdx = currentIdx;
             stuckRecoveryCount = 0;
         } else {
+            // If we've been on the same idx for >4s (shouldn't happen — period is 30s,
+            // but if rAF stalled and page froze, this can go stale), and now is far ahead,
+            // force a redraw.
             if (now - lastLoopTick > 4000 && stuckRecoveryCount < 3) {
                 stuckRecoveryCount++;
+                // Force redraw
                 resizeCanvas();
             }
         }
@@ -1402,6 +1600,10 @@ function placeBet(direction) {
 btnUp.addEventListener('click', () => placeBet('up'));
 btnDown.addEventListener('click', () => placeBet('down'));
 
+/* ------------------------------------------------------------
+   evaluateTrade — win/loss is decided by what the user SAW:
+   the final displayed candle's color.
+   ------------------------------------------------------------ */
 function evaluateTrade(settledIdx) {
     if (!activeBet) return;
     try {
@@ -1447,6 +1649,7 @@ function evaluateTrade(settledIdx) {
     }
 }
 
+/* AMOUNT INPUT — auto-format on blur/change */
 const amountInput = document.getElementById('trade-amount');
 function formatAmountInput() {
     const v = parseFloat(amountInput.value);
@@ -1459,6 +1662,11 @@ function formatAmountInput() {
 amountInput.addEventListener('blur', formatAmountInput);
 amountInput.addEventListener('change', formatAmountInput);
 
+/* ============================================================
+   WATCHDOG — if syncLoop didn't tick in 3s, forcibly restart.
+   Handles cases where rAF chain breaks due to background tab
+   or unhandled errors.
+   ============================================================ */
 setInterval(() => {
     if (Date.now() - lastLoopTick > 3000) {
         console.warn('[watchdog] syncLoop stalled — restarting');
@@ -1466,18 +1674,23 @@ setInterval(() => {
     }
 }, 3000);
 
+/* Also refresh canvas on visibility change */
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
         resizeCanvas();
     }
 });
 
+/* BOOT */
 resizeCanvas();
 ASSETS.forEach(a => { initAssetStore(a); warmupAsset(a); });
 requestAnimationFrame(syncLoop);
 setTimeout(() => { if (window.hideLoading) window.hideLoading(); }, 5000);
 </script>
 
+<!-- ============================================================
+     FIREBASE MODULE — Customer Service Chat
+     ============================================================ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -1590,6 +1803,9 @@ csModal.addEventListener('click', (e) => {
 });
 </script>
 
+<!-- ============================================================
+     FIREBASE MODULE — USER DATA, WALLET, TX, FORCE, BETS, ONLINE COUNT
+     ============================================================ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getDatabase, ref, get, set, update, push, onValue, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -1733,6 +1949,7 @@ window.addEventListener('vertex:add-tx', async (e) => {
     } catch(err) { console.error('[Tx] add error:', err); }
 });
 
+/* ONLINE COUNT */
 const ONLINE_BASE = 4285;
 let adminOnlineValue = 0;
 
